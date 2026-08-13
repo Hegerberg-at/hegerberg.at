@@ -1,0 +1,315 @@
+#
+# Lokale Entwicklung:
+#   Terminal 1:  bun run dev
+#   Terminal 2:  bun run cms
+#   Browser:     http://localhost:4321/admin/
+# Durch `local_backend: true` wird dabei direkt ins Dateisystem geschrieben –
+# ohne Git-Authentifizierung.
+
+backend:
+  name: github
+  repo: stefanschlipfi/content-hegerberg.at
+  base_url: http://localhost:3011
+
+  branch: main
+  commit_messages:
+    create: 'CMS: {{collection}} „{{slug}}“ angelegt'
+    update: 'CMS: {{collection}} „{{slug}}“ aktualisiert'
+    delete: 'CMS: {{collection}} „{{slug}}“ gelöscht'
+    uploadMedia: 'CMS: Medium {{path}} hochgeladen'
+    deleteMedia: 'CMS: Medium {{path}} gelöscht'
+
+# Lokales Backend für die Entwicklung (wird in Produktion ignoriert).
+local_backend: true
+
+locale: de
+site_url: https://hegerberg.at
+display_url: https://hegerberg.at
+
+media_folder: public/images/uploads
+public_folder: /images/uploads
+
+collections:
+  # ---------------------------------------------------------------- Speisekarte
+  - name: speisekarte
+    label: Speisekarte
+    label_singular: Speise
+    description: Alle Speisen und Getränke der Karte.
+    folder: src/content/speisekarte
+    create: true
+    delete: true
+    format: yaml-frontmatter
+    slug: '{{slug}}'
+    identifier_field: name
+    summary: '{{kategorie}} · {{name}} ({{preis}} €)'
+    sortable_fields: [kategorie, reihenfolge, name, preis]
+    view_groups:
+      - label: Kategorie
+        field: kategorie
+    fields:
+      - { name: name, label: Bezeichnung, widget: string }
+      - name: kategorie
+        label: Kategorie
+        widget: select
+        options: [Suppen, Vorspeisen, Hauptspeisen, Desserts, Getränke]
+        default: Hauptspeisen
+      - name: beschreibung
+        label: Beschreibung
+        widget: text
+        required: false
+        hint: Kurzer Beschreibungstext, der unter der Bezeichnung erscheint.
+      - name: preis
+        label: Preis in Euro
+        widget: number
+        value_type: float
+        min: 0
+        step: 0.1
+        hint: Punkt als Dezimaltrennzeichen, z. B. 16.5
+      - name: allergene
+        label: Allergene
+        widget: select
+        multiple: true
+        required: false
+        default: []
+        options:
+          - { label: 'A – Glutenhaltiges Getreide', value: A }
+          - { label: 'B – Krebstiere', value: B }
+          - { label: 'C – Eier', value: C }
+          - { label: 'D – Fisch', value: D }
+          - { label: 'E – Erdnüsse', value: E }
+          - { label: 'F – Soja', value: F }
+          - { label: 'G – Milch und Laktose', value: G }
+          - { label: 'H – Schalenfrüchte (Nüsse)', value: H }
+          - { label: 'L – Sellerie', value: L }
+          - { label: 'M – Senf', value: M }
+          - { label: 'N – Sesam', value: N }
+          - { label: 'O – Sulfite', value: O }
+          - { label: 'P – Lupinen', value: P }
+          - { label: 'R – Weichtiere', value: R }
+      - name: verfuegbar
+        label: Aktuell verfügbar
+        widget: boolean
+        default: true
+        hint: Deaktivieren, statt die Speise zu löschen – sie wird dann ausgegraut dargestellt.
+      - name: hausspezialitaet
+        label: Hausspezialität
+        widget: boolean
+        default: false
+        hint: Wird zusätzlich auf der Startseite hervorgehoben.
+      - name: reihenfolge
+        label: Reihenfolge
+        widget: number
+        value_type: int
+        default: 100
+        hint: Kleinere Zahl = weiter oben innerhalb der Kategorie.
+
+  # ----------------------------------------------------------- Öffnungszeiten
+  - name: oeffnungszeiten
+    label: Öffnungszeiten
+    label_singular: Wochentag
+    description: Je ein Eintrag pro Wochentag. Bitte keine Tage anlegen oder löschen.
+    folder: src/content/oeffnungszeiten
+    create: false
+    delete: false
+    format: yaml-frontmatter
+    identifier_field: tag
+    summary: '{{reihenfolge}} · {{tag}}'
+    sortable_fields: [reihenfolge]
+    fields:
+      - name: tag
+        label: Wochentag
+        widget: select
+        options:
+          [Montag, Dienstag, Mittwoch, Donnerstag, Freitag, Samstag, Sonntag]
+      - name: reihenfolge
+        label: Position (Mo = 1 … So = 7)
+        widget: number
+        value_type: int
+        min: 1
+        max: 7
+      - name: geschlossen
+        label: Ruhetag / geschlossen
+        widget: boolean
+        default: false
+      - name: von
+        label: Geöffnet ab
+        widget: string
+        required: false
+        pattern:
+          ['^([01][0-9]|2[0-3]):[0-5][0-9]$', 'Bitte im Format HH:MM angeben']
+        hint: 'Format HH:MM, z. B. 11:00 – leer lassen, wenn Ruhetag.'
+      - name: bis
+        label: Geöffnet bis
+        widget: string
+        required: false
+        pattern:
+          ['^([01][0-9]|2[0-3]):[0-5][0-9]$', 'Bitte im Format HH:MM angeben']
+        hint: 'Format HH:MM, z. B. 22:00 – leer lassen, wenn Ruhetag.'
+      - name: hinweis
+        label: Hinweis
+        widget: string
+        required: false
+        hint: 'z. B. „Ruhetag“ oder „Bei Schlechtwetter geschlossen“.'
+
+  # ---------------------------------------------------------------- Geschichte
+  - name: geschichte
+    label: Geschichte
+    label_singular: Kapitel
+    description: Die Kapitel auf der Seite „Geschichte“.
+    folder: src/content/geschichte
+    create: true
+    delete: true
+    format: yaml-frontmatter
+    slug: '{{slug}}'
+    identifier_field: titel
+    summary: '{{jahr}} · {{titel}}'
+    sortable_fields: [reihenfolge, titel]
+    fields:
+      - { name: titel, label: Titel, widget: string }
+      - name: jahr
+        label: Jahr / Zeitraum
+        widget: string
+        required: false
+        hint: 'z. B. „1928“, „1950er“ oder „Heute“.'
+      - name: beschreibung
+        label: Kurzbeschreibung
+        widget: text
+        hint: Einleitender Satz, der als Vorspann angezeigt wird.
+      - name: bild
+        label: Bild
+        widget: image
+        required: false
+        choose_url: false
+      - name: bildAlt
+        label: Bildbeschreibung (Alt-Text)
+        widget: string
+        required: false
+        hint: Wichtig für Barrierefreiheit und Suchmaschinen.
+      - name: reihenfolge
+        label: Reihenfolge
+        widget: number
+        value_type: int
+        default: 100
+      - name: body
+        label: Fließtext
+        widget: markdown
+        required: false
+
+  # ------------------------------------------------------------------- Galerie
+  - name: galerie
+    label: Galerie
+    label_singular: Foto
+    description: Fotos für die Galerie-Seite. Ein Eintrag = ein Bild.
+    folder: src/content/galerie
+    create: true
+    delete: true
+    format: yaml-frontmatter
+    slug: '{{slug}}'
+    identifier_field: titel
+    summary: '{{reihenfolge}} · {{titel}} ({{kategorie}})'
+    sortable_fields: [reihenfolge, titel, kategorie]
+    view_groups:
+      - label: Kategorie
+        field: kategorie
+    fields:
+      - name: titel
+        label: Titel
+        widget: string
+        hint: Wird über dem Bild und in der Großansicht angezeigt.
+      - name: bild
+        label: Foto
+        widget: image
+        choose_url: false
+        media_library:
+          config:
+            max_file_size: 5000000
+        hint: Querformat funktioniert am besten. Bitte vorher auf max. 2000 px Breite verkleinern.
+      - name: bildAlt
+        label: Bildbeschreibung (Alt-Text)
+        widget: string
+        required: false
+        hint: Kurze Beschreibung für Screenreader. Ohne Angabe wird der Titel verwendet.
+      - name: beschreibung
+        label: Bildunterschrift
+        widget: text
+        required: false
+        hint: Erscheint in der Großansicht unter dem Foto.
+      - name: kategorie
+        label: Kategorie
+        widget: select
+        default: Haus & Terrasse
+        options:
+          - Haus & Terrasse
+          - Küche
+          - Aussicht
+          - Veranstaltungen
+      - name: hervorheben
+        label: Groß darstellen
+        widget: boolean
+        default: false
+        hint: Das Foto belegt im Raster die doppelte Fläche.
+      - name: reihenfolge
+        label: Reihenfolge
+        widget: number
+        value_type: int
+        default: 100
+        hint: Kleinere Zahl = weiter vorne.
+
+  # -------------------------------------------------------------------- Events
+  - name: events
+    label: Veranstaltungen
+    label_singular: Veranstaltung
+    description: Feste, Konzerte und geführte Wanderungen.
+    folder: src/content/events
+    create: true
+    delete: true
+    format: yaml-frontmatter
+    slug: '{{year}}-{{month}}-{{day}}-{{slug}}'
+    identifier_field: titel
+    summary: '{{datum}} · {{titel}}'
+    sortable_fields: [datum, titel]
+    fields:
+      - { name: titel, label: Titel, widget: string }
+      - name: datum
+        label: Datum
+        widget: datetime
+        date_format: YYYY-MM-DD
+        time_format: false
+        picker_utc: true
+        format: YYYY-MM-DD
+      - name: datumBis
+        label: Enddatum (bei mehrtägigen Veranstaltungen)
+        widget: datetime
+        required: false
+        date_format: YYYY-MM-DD
+        time_format: false
+        picker_utc: true
+        format: YYYY-MM-DD
+      - name: uhrzeit
+        label: Beginn (Uhrzeit)
+        widget: string
+        required: false
+        pattern:
+          ['^([01][0-9]|2[0-3]):[0-5][0-9]$', 'Bitte im Format HH:MM angeben']
+        hint: 'Format HH:MM, z. B. 17:00'
+      - name: beschreibung
+        label: Kurzbeschreibung
+        widget: text
+        hint: Wird in der Vorschaukachel angezeigt.
+      - name: bild
+        label: Bild
+        widget: image
+        required: false
+        choose_url: false
+      - name: bildAlt
+        label: Bildbeschreibung (Alt-Text)
+        widget: string
+        required: false
+      - name: abgesagt
+        label: Abgesagt
+        widget: boolean
+        default: false
+      - name: body
+        label: Weitere Details
+        widget: markdown
+        required: false

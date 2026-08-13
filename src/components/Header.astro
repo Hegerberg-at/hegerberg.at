@@ -1,0 +1,156 @@
+---
+import { navigation, site } from '../lib/site';
+
+interface Props {
+  /** Über dem Hero: Header liegt transparent über dem Bild. */
+  transparent?: boolean;
+}
+
+const { transparent = false } = Astro.props;
+const pfad = Astro.url.pathname;
+
+const istAktiv = (href: string) =>
+  href === '/' ? pfad === '/' : pfad.startsWith(href);
+---
+
+<header
+  data-transparent={transparent ? '' : null}
+  class:list={[
+    'group/header sticky top-0 z-40 transition-colors duration-300',
+    transparent
+      ? 'bg-holz-950/0 data-[scrolled]:bg-holz-950/95 data-[scrolled]:shadow-lg data-[scrolled]:backdrop-blur'
+      : 'bg-holz-950 shadow-lg',
+  ]}
+>
+  <div class="container-page flex items-center justify-between gap-4 py-4">
+    <a
+      href="/"
+      class="flex items-center gap-3 text-holz-50 transition hover:text-holz-200"
+    >
+      <img
+        src="/favicon.png"
+        alt=""
+        width="48"
+        height="48"
+        class="h-12 w-12 transition group-hover/header:scale-105"
+      />
+      <span class="leading-tight">
+        <span class="block font-display text-lg font-bold sm:text-xl"
+          >Schutzhaus</span
+        >
+        <span
+          class="block text-[0.7rem] uppercase tracking-[0.25em] text-holz-300"
+          >am Hegerberg</span
+        >
+      </span>
+    </a>
+
+    <nav aria-label="Hauptnavigation" class="hidden lg:block">
+      <ul class="flex items-center gap-1">
+        {
+          navigation.map((eintrag) => (
+            <li>
+              <a
+                href={eintrag.href}
+                aria-current={istAktiv(eintrag.href) ? 'page' : undefined}
+                class:list={[
+                  'rounded-full px-4 py-2 text-sm font-semibold transition',
+                  istAktiv(eintrag.href)
+                    ? 'bg-holz-50/15 text-holz-50'
+                    : 'text-holz-200 hover:bg-holz-50/10 hover:text-holz-50',
+                ]}
+              >
+                {eintrag.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    <div class="flex items-center gap-2">
+      <a
+        href={`tel:${site.telefon.replace(/\s/g, '')}`}
+        class="hidden rounded-full bg-wald-600 px-5 py-2.5 text-sm font-semibold text-holz-50 transition hover:bg-wald-500 sm:inline-block"
+      >
+        Tisch reservieren
+      </a>
+
+      <button
+        type="button"
+        data-menu-toggle
+        aria-expanded="false"
+        aria-controls="mobile-menu"
+        class="grid size-11 place-items-center rounded-full text-holz-50 transition hover:bg-holz-50/10 lg:hidden"
+      >
+        <span class="sr-only">Menü öffnen</span>
+        <svg
+          class="size-6"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          aria-hidden="true"
+        >
+          <path d="M4 7h16M4 12h16M4 17h16"></path>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <div id="mobile-menu" hidden class="border-t border-holz-50/10 lg:hidden">
+    <nav aria-label="Navigation (mobil)" class="container-page py-4">
+      <ul class="flex flex-col gap-1">
+        {
+          navigation.map((eintrag) => (
+            <li>
+              <a
+                href={eintrag.href}
+                aria-current={istAktiv(eintrag.href) ? 'page' : undefined}
+                class:list={[
+                  'block rounded-xl px-4 py-3 text-base font-semibold transition',
+                  istAktiv(eintrag.href)
+                    ? 'bg-holz-50/15 text-holz-50'
+                    : 'text-holz-200 hover:bg-holz-50/10 hover:text-holz-50',
+                ]}
+              >
+                {eintrag.label}
+              </a>
+            </li>
+          ))
+        }
+        <li class="pt-2">
+          <a
+            href={`tel:${site.telefon.replace(/\s/g, '')}`}
+            class="block rounded-xl bg-wald-600 px-4 py-3 text-center text-base font-semibold text-holz-50"
+          >
+            Tisch reservieren
+          </a>
+        </li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<script>
+  const header = document.querySelector<HTMLElement>('header[data-transparent]');
+  if (header) {
+    const aktualisiere = () => {
+      header.toggleAttribute('data-scrolled', window.scrollY > 24);
+    };
+    aktualisiere();
+    window.addEventListener('scroll', aktualisiere, { passive: true });
+  }
+
+  const toggle = document.querySelector<HTMLButtonElement>('[data-menu-toggle]');
+  const menu = document.getElementById('mobile-menu');
+  toggle?.addEventListener('click', () => {
+    if (!menu) return;
+    const offen = toggle.getAttribute('aria-expanded') === 'true';
+    toggle.setAttribute('aria-expanded', String(!offen));
+    menu.hidden = offen;
+    const label = toggle.querySelector('.sr-only');
+    if (label) label.textContent = offen ? 'Menü öffnen' : 'Menü schließen';
+  });
+</script>

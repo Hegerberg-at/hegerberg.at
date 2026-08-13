@@ -1,0 +1,93 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import SectionHeading from '../components/SectionHeading.astro';
+import { site } from '../lib/site';
+---
+
+<BaseLayout
+  title="Datenschutz"
+  description="Datenschutzerklärung für hegerberg.at – welche Daten beim Besuch der Website verarbeitet werden."
+>
+  <div class="container-page py-16 sm:py-20">
+    <SectionHeading
+      as="h1"
+      eyebrow="Rechtliches"
+      titel="Datenschutzerklärung"
+      text="Diese Website ist bewusst datensparsam gebaut: keine Tracking-Cookies, keine Analyse-Tools, keine Werbenetzwerke."
+    />
+
+    <div class="mt-12 max-w-2xl space-y-8 leading-relaxed text-holz-800">
+      <section>
+        <h2 class="text-xl font-bold text-holz-950">Verantwortlicher</h2>
+        <address class="mt-3 not-italic">
+          {site.impressum.inhaber}, {site.adresse.strasse}, {site.adresse.plz}
+          &nbsp;{site.adresse.ort}<br />
+          E-Mail: <a
+            href={`mailto:${site.email}`}
+            class="underline underline-offset-4">{site.email}</a
+          >
+        </address>
+      </section>
+
+      <section>
+        <h2 class="text-xl font-bold text-holz-950">Server-Logfiles</h2>
+        <p class="mt-3">
+          Beim Aufruf dieser Website werden vom Hosting-Anbieter automatisch
+          technische Zugriffsdaten verarbeitet (IP-Adresse, Zeitpunkt,
+          aufgerufene Seite, Browsertyp). Rechtsgrundlage ist das berechtigte
+          Interesse am sicheren und störungsfreien Betrieb der Website gemäß
+          Art. 6 Abs. 1 lit. f DSGVO. Die Daten werden nicht mit anderen Quellen
+          zusammengeführt.
+        </p>
+      </section>
+
+      <section>
+        <h2 class="text-xl font-bold text-holz-950">Kartendarstellung</h2>
+        <p class="mt-3">
+          Die Karte auf der Kontaktseite wird erst nach ausdrücklichem Klick
+          geladen. Erst dann wird eine Verbindung zu OpenStreetMap hergestellt
+          und Ihre IP-Adresse dorthin übertragen. Ohne Klick findet keine
+          Verbindung statt.
+        </p>
+      </section>
+
+      <section>
+        <h2 class="text-xl font-bold text-holz-950">Schriftarten</h2>
+        <p class="mt-3">
+          Für die Typografie werden Web-Schriften von Google Fonts geladen.
+          Dabei wird Ihre IP-Adresse an Google übertragen. Wenn Sie das
+          vermeiden möchten, können die Schriften selbst gehostet werden – siehe
+          Hinweis in der Projektdokumentation.
+        </p>
+      </section>
+
+      <section>
+        <h2 class="text-xl font-bold text-holz-950">Kontaktaufnahme</h2>
+        <p class="mt-3">
+          Wenn Sie uns per E-Mail oder Telefon kontaktieren, werden Ihre Angaben
+          zur Bearbeitung der Anfrage und für den Fall von Anschlussfragen
+          gespeichert. Diese Daten geben wir nicht ohne Ihre Einwilligung
+          weiter.
+        </p>
+      </section>
+
+      <section>
+        <h2 class="text-xl font-bold text-holz-950">Ihre Rechte</h2>
+        <p class="mt-3">
+          Ihnen stehen die Rechte auf Auskunft, Berichtigung, Löschung,
+          Einschränkung der Verarbeitung, Datenübertragbarkeit und Widerspruch
+          zu. Wenden Sie sich dazu an die oben genannte Adresse. Bei Beschwerden
+          können Sie sich an die österreichische Datenschutzbehörde wenden.
+        </p>
+      </section>
+
+      <p
+        class="rounded-xl border border-holz-300 bg-holz-100 p-4 text-sm text-holz-700"
+      >
+        <strong>Hinweis für die Redaktion:</strong> Dieser Text ist eine
+        Vorlage und ersetzt keine Rechtsberatung. Bitte an den tatsächlichen
+        Hosting-Anbieter und eingesetzte Dienste anpassen.
+      </p>
+    </div>
+  </div>
+</BaseLayout>

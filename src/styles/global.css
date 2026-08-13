@@ -1,0 +1,94 @@
+@import 'tailwindcss';
+
+/* Rustikale Farbwelt: Holz, Waldgrün, Sandstein */
+@theme {
+  --color-holz-50: #faf6f1;
+  --color-holz-100: #f2e9dd;
+  --color-holz-200: #e4d2ba;
+  --color-holz-300: #d2b48f;
+  --color-holz-400: #bf9263;
+  --color-holz-500: #ae7847;
+  --color-holz-600: #97613b;
+  --color-holz-700: #7a4c32;
+  --color-holz-800: #653f2e;
+  --color-holz-900: #563629;
+  --color-holz-950: #2f1c15;
+
+  --color-wald-50: #f3f7f3;
+  --color-wald-100: #e2ebe1;
+  --color-wald-200: #c5d8c4;
+  --color-wald-300: #9bbb9c;
+  --color-wald-400: #6d9a70;
+  --color-wald-500: #4c7c52;
+  --color-wald-600: #39623f;
+  --color-wald-700: #2e4f34;
+  --color-wald-800: #27402c;
+  --color-wald-900: #213626;
+  --color-wald-950: #101e13;
+
+  --font-display: 'Bitter', ui-serif, Georgia, serif;
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-holz-50 text-holz-950 font-sans antialiased;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-display tracking-tight;
+  }
+
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-wald-600;
+  }
+}
+
+/* Als @utility definiert, damit die Varianten unten @apply verwenden können. */
+@utility btn {
+  @apply inline-flex items-center justify-center gap-2 rounded-full px-6 py-3
+         text-sm font-semibold tracking-wide transition
+         focus-visible:outline-2 focus-visible:outline-offset-2;
+}
+
+@layer components {
+  .container-page {
+    @apply mx-auto w-full max-w-6xl px-5 sm:px-8;
+  }
+
+  .btn-primary {
+    @apply btn bg-wald-700 text-holz-50 shadow-lg shadow-wald-950/20
+           hover:bg-wald-800 focus-visible:outline-wald-700;
+  }
+
+  .btn-secondary {
+    @apply btn border-2 border-holz-50/70 bg-transparent text-holz-50
+           hover:bg-holz-50 hover:text-holz-950 focus-visible:outline-holz-50;
+  }
+
+  .btn-outline {
+    @apply btn border-2 border-holz-300 bg-transparent text-holz-800
+           hover:border-holz-500 hover:bg-holz-100 focus-visible:outline-holz-500;
+  }
+
+  .card {
+    @apply rounded-2xl border border-holz-200 bg-white shadow-sm;
+  }
+
+  .eyebrow {
+    @apply text-xs font-semibold uppercase tracking-[0.2em] text-wald-700;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}

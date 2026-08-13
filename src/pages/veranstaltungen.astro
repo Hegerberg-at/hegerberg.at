@@ -1,0 +1,86 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import SectionHeading from '../components/SectionHeading.astro';
+import EventCard from '../components/EventCard.astro';
+
+const heute = new Date();
+heute.setHours(0, 0, 0, 0);
+
+const alle = await getCollection('events');
+
+const kommend = alle
+  .filter((event) => (event.data.datumBis ?? event.data.datum) >= heute)
+  .sort((a, b) => a.data.datum.getTime() - b.data.datum.getTime());
+
+const vergangen = alle
+  .filter((event) => (event.data.datumBis ?? event.data.datum) < heute)
+  .sort((a, b) => b.data.datum.getTime() - a.data.datum.getTime())
+  .slice(0, 6);
+---
+
+<BaseLayout
+  title="Veranstaltungen"
+  description="Feste, Live-Musik und geführte Wanderungen am Hegerberg – alle kommenden Veranstaltungen des Schutzhauses im Überblick."
+>
+  <div class="container-page py-16 sm:py-20">
+    <SectionHeading
+      as="h1"
+      eyebrow="Termine"
+      titel="Veranstaltungen am Hegerberg"
+      text="Vom Sonnwendfeuer bis zum Krampuslauf – das Jahr am Berg hat seine Fixpunkte."
+    />
+
+    {
+      kommend.length > 0 ? (
+        <div class="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {kommend.map((event) => (
+            <EventCard
+              titel={event.data.titel}
+              datum={event.data.datum}
+              datumBis={event.data.datumBis}
+              uhrzeit={event.data.uhrzeit}
+              beschreibung={event.data.beschreibung}
+              bild={event.data.bild}
+              bildAlt={event.data.bildAlt}
+              abgesagt={event.data.abgesagt}
+            />
+          ))}
+        </div>
+      ) : (
+        <p class="mt-12 rounded-2xl border border-holz-200 bg-holz-100 p-8 text-holz-700">
+          Derzeit sind keine Veranstaltungen angekündigt. Schauen Sie bald
+          wieder vorbei.
+        </p>
+      )
+    }
+
+    {
+      vergangen.length > 0 && (
+        <section class="mt-20">
+          <h2 class="text-2xl font-bold text-holz-950">Bereits gewesen</h2>
+          <ul class="mt-6 divide-y divide-holz-200 border-y border-holz-200">
+            {vergangen.map((event) => (
+              <li class="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 py-4">
+                <span class="font-semibold text-holz-800">
+                  {event.data.titel}
+                </span>
+                <time
+                  datetime={event.data.datum.toISOString().slice(0, 10)}
+                  class="text-sm tabular-nums text-holz-600"
+                >
+                  {event.data.datum.toLocaleDateString('de-AT', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                    timeZone: 'Europe/Vienna',
+                  })}
+                </time>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )
+    }
+  </div>
+</BaseLayout>

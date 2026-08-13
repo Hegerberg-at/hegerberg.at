@@ -1,0 +1,134 @@
+---
+import { navigation, site } from '../lib/site';
+import { getOeffnungszeiten, zeitspanne } from '../lib/oeffnungszeiten';
+
+const tage = await getOeffnungszeiten();
+const jahr = new Date().getFullYear();
+---
+
+<footer class="mt-24 bg-holz-950 text-holz-200">
+  <div class="container-page grid gap-12 py-16 md:grid-cols-3">
+    <div>
+      <p class="font-display text-xl font-bold text-holz-50">{site.name}</p>
+      <p class="mt-3 max-w-xs text-sm leading-relaxed text-holz-300">
+        {site.claim} – {site.geo.seehoehe} m Seehöhe, Bezirk {
+          site.adresse.bezirk
+        }.
+      </p>
+      <div class="mt-6 flex gap-3">
+        {
+          site.social.facebook && (
+            <a
+              href={site.social.facebook}
+              rel="noopener noreferrer"
+              target="_blank"
+              class="rounded-full border border-holz-50/20 px-4 py-2 text-xs font-semibold transition hover:bg-holz-50/10"
+            >
+              Facebook
+            </a>
+          )
+        }
+        {
+          site.social.instagram && (
+            <a
+              href={site.social.instagram}
+              rel="noopener noreferrer"
+              target="_blank"
+              class="rounded-full border border-holz-50/20 px-4 py-2 text-xs font-semibold transition hover:bg-holz-50/10"
+            >
+              Instagram
+            </a>
+          )
+        }
+      </div>
+    </div>
+
+    <div>
+      <h2 class="text-sm font-semibold uppercase tracking-[0.2em] text-holz-400">
+        Kontakt
+      </h2>
+      <address class="mt-4 space-y-1 text-sm not-italic leading-relaxed">
+        <p>{site.adresse.strasse}</p>
+        <p>{site.adresse.plz}&nbsp;{site.adresse.ort}, {site.adresse.land}</p>
+        <p class="pt-3">
+          <a
+            href={`tel:${site.telefon.replace(/\s/g, '')}`}
+            class="transition hover:text-holz-50">{site.telefonAnzeige}</a
+          >
+        </p>
+        <p>
+          <a href={`mailto:${site.email}`} class="transition hover:text-holz-50"
+            >{site.email}</a
+          >
+        </p>
+      </address>
+
+      <h2
+        class="mt-8 text-sm font-semibold uppercase tracking-[0.2em] text-holz-400"
+      >
+        Navigation
+      </h2>
+      <ul class="mt-4 space-y-1 text-sm">
+        {
+          navigation.map((eintrag) => (
+            <li>
+              <a href={eintrag.href} class="transition hover:text-holz-50">
+                {eintrag.label}
+              </a>
+            </li>
+          ))
+        }
+        <li>
+          <a href="/veranstaltungen/" class="transition hover:text-holz-50"
+            >Veranstaltungen</a
+          >
+        </li>
+      </ul>
+    </div>
+
+    <div>
+      <h2 class="text-sm font-semibold uppercase tracking-[0.2em] text-holz-400">
+        Öffnungszeiten
+      </h2>
+      <dl class="mt-4 space-y-1 text-sm">
+        {
+          tage.map((tag) => (
+            <div class="flex justify-between gap-4 border-b border-holz-50/10 py-1.5 last:border-0">
+              <dt>{tag.tag}</dt>
+              <dd
+                class:list={[
+                  'tabular-nums',
+                  tag.geschlossen ? 'text-holz-400' : 'text-holz-50',
+                ]}
+              >
+                {zeitspanne(tag)}
+              </dd>
+            </div>
+          ))
+        }
+      </dl>
+    </div>
+  </div>
+
+  <div class="border-t border-holz-50/10">
+    <div
+      class="container-page flex flex-col gap-3 py-6 text-xs text-holz-400 sm:flex-row sm:items-center sm:justify-between"
+    >
+      <p>&copy; {jahr} {site.name}. Alle Rechte vorbehalten.</p>
+      <nav aria-label="Rechtliches" class="flex items-center gap-5">
+        <a href="/impressum/" class="transition hover:text-holz-100"
+          >Impressum</a
+        >
+        <a href="/datenschutz/" class="transition hover:text-holz-100"
+          >Datenschutz</a
+        >
+        <a
+          href="/admin/"
+          rel="nofollow"
+          class="text-holz-600 transition hover:text-holz-300"
+          title="Inhalte bearbeiten">Redaktion</a
+        >
+      </nav>
+    </div>
+  </div>
+</footer>

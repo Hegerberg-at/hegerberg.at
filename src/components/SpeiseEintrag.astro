@@ -1,0 +1,72 @@
+---
+import { formatPreis } from '../lib/format';
+import { allergenName } from '../lib/allergene';
+
+interface Props {
+  name: string;
+  beschreibung?: string;
+  preis: number;
+  allergene: string[];
+  verfuegbar: boolean;
+  hausspezialitaet: boolean;
+}
+
+const { name, beschreibung, preis, allergene, verfuegbar, hausspezialitaet } =
+  Astro.props;
+---
+
+<li
+  class:list={[
+    'flex items-baseline gap-4 py-4',
+    !verfuegbar && 'opacity-55',
+  ]}
+>
+  <div class="min-w-0 flex-1">
+    <div class="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+      <h3 class="text-base font-semibold text-holz-950 sm:text-lg">{name}</h3>
+      {
+        hausspezialitaet && (
+          <span class="rounded-full bg-wald-100 px-2.5 py-0.5 text-[0.65rem] font-bold uppercase tracking-wider text-wald-800">
+            Hausspezialität
+          </span>
+        )
+      }
+      {
+        !verfuegbar && (
+          <span class="rounded-full bg-holz-200 px-2.5 py-0.5 text-[0.65rem] font-bold uppercase tracking-wider text-holz-700">
+            Derzeit nicht verfügbar
+          </span>
+        )
+      }
+    </div>
+    {
+      beschreibung && (
+        <p class="mt-1 text-sm leading-relaxed text-holz-700">{beschreibung}</p>
+      )
+    }
+    {
+      allergene.length > 0 && (
+        <p class="mt-1.5 text-xs text-holz-600">
+          <span class="sr-only">Allergene: </span>
+          {allergene.map((code, i) => (
+            <>
+              {i > 0 && <span aria-hidden="true">, </span>}
+              <abbr
+                title={allergenName(code)}
+                class="font-semibold no-underline"
+              >
+                {code}
+              </abbr>
+            </>
+          ))}
+        </p>
+      )
+    }
+  </div>
+
+  <div
+    class="shrink-0 border-b border-dotted border-holz-300 pb-1 font-display text-base font-bold tabular-nums text-holz-900 sm:text-lg"
+  >
+    {formatPreis(preis)}
+  </div>
+</li>

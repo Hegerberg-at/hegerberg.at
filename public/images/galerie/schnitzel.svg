@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Wiener Schnitzel auf dem Teller">
+  <rect width="1200" height="800" fill="#563629"/>
+  <g opacity="0.35" fill="#7a4c32"><rect x="0" y="140" width="1200" height="10"/><rect x="0" y="420" width="1200" height="10"/><rect x="0" y="700" width="1200" height="10"/></g>
+  <circle cx="600" cy="400" r="290" fill="#f2e9dd"/>
+  <circle cx="600" cy="400" r="250" fill="#faf6f1"/>
+  <ellipse cx="560" cy="370" rx="180" ry="130" fill="#bf9263"/>
+  <ellipse cx="560" cy="362" rx="164" ry="116" fill="#d2b48f"/>
+  <g fill="#ae7847" opacity="0.55"><circle cx="500" cy="330" r="9"/><circle cx="560" cy="316" r="7"/><circle cx="620" cy="352" r="10"/><circle cx="530" cy="404" r="8"/><circle cx="608" cy="412" r="7"/></g>
+  <g fill="#e4d2ba"><circle cx="760" cy="470" r="42"/><circle cx="812" cy="428" r="34"/><circle cx="742" cy="392" r="30"/></g>
+  <circle cx="470" cy="512" r="30" fill="#97613b"/>
+  <path d="M452 500 q18 -22 36 0 q-18 24 -36 0" fill="#4c7c52"/>
+</svg>

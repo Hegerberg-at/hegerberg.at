@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Fernblick vom Hegerberg über die Hügel des Wienerwaldes">
+  <defs><linearGradient id="b" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="#39623f"/><stop offset="50%" stop-color="#9bbb9c"/><stop offset="100%" stop-color="#e2ebe1"/>
+  </linearGradient></defs>
+  <rect width="1200" height="800" fill="url(#b)"/>
+  <g fill="#f3f7f3" opacity="0.5">
+    <ellipse cx="300" cy="200" rx="150" ry="40"/><ellipse cx="880" cy="150" rx="190" ry="46"/><ellipse cx="620" cy="268" rx="120" ry="30"/>
+  </g>
+  <path d="M0 470 L200 420 L400 468 L620 408 L840 462 L1040 414 L1200 456 L1200 800 L0 800 Z" fill="#c5d8c4" opacity="0.85"/>
+  <path d="M0 546 L240 498 L480 548 L720 492 L960 546 L1200 506 L1200 800 L0 800 Z" fill="#6d9a70"/>
+  <path d="M0 630 L280 584 L560 632 L840 578 L1120 630 L1200 610 L1200 800 L0 800 Z" fill="#39623f"/>
+  <path d="M0 716 L300 678 L600 720 L900 674 L1200 714 L1200 800 L0 800 Z" fill="#213626"/>
+  <g fill="#101e13"><path d="M340 678 l18 -58 l18 58 z"/><path d="M392 686 l14 -46 l14 46 z"/><path d="M900 672 l20 -64 l20 64 z"/><path d="M956 680 l15 -50 l15 50 z"/></g>
+</svg>

@@ -1,0 +1,330 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import SectionHeading from '../components/SectionHeading.astro';
+
+const bilder = (await getCollection('galerie')).sort(
+  (a, b) =>
+    a.data.reihenfolge - b.data.reihenfolge ||
+    a.data.titel.localeCompare(b.data.titel, 'de-AT'),
+);
+
+const kategorien = [...new Set(bilder.map((bild) => bild.data.kategorie))];
+
+const anker = (wert: string) =>
+  wert
+    .toLowerCase()
+    .replace(/ä/g, 'ae')
+    .replace(/ö/g, 'oe')
+    .replace(/ü/g, 'ue')
+    .replace(/ß/g, 'ss')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+---
+
+<BaseLayout
+  title="Galerie"
+  description="Bilder vom Schutzhaus am Hegerberg: Terrasse, Gastraum, Küche und der Blick über den Wienerwald."
+>
+  <div class="container-page py-16 sm:py-20">
+    <SectionHeading
+      as="h1"
+      eyebrow="Impressionen"
+      titel="Galerie"
+      text="Ein paar Eindrücke vom Haus, aus der Küche und vom Blick, für den man heraufkommt."
+    />
+
+    {
+      kategorien.length > 1 && (
+        <div class="mt-8" data-galerie-filter>
+          <h2 class="sr-only">Nach Kategorie filtern</h2>
+          <div class="flex flex-wrap gap-2" role="group" aria-label="Kategorie-Filter">
+            <button
+              type="button"
+              data-filter="alle"
+              aria-pressed="true"
+              class="rounded-full border border-holz-300 px-4 py-2 text-sm font-semibold text-holz-800 transition hover:border-wald-600 hover:bg-wald-50 aria-pressed:border-wald-700 aria-pressed:bg-wald-700 aria-pressed:text-holz-50"
+            >
+              Alle
+            </button>
+            {kategorien.map((kategorie) => (
+              <button
+                type="button"
+                data-filter={anker(kategorie)}
+                aria-pressed="false"
+                class="rounded-full border border-holz-300 px-4 py-2 text-sm font-semibold text-holz-800 transition hover:border-wald-600 hover:bg-wald-50 aria-pressed:border-wald-700 aria-pressed:bg-wald-700 aria-pressed:text-holz-50"
+              >
+                {kategorie}
+              </button>
+            ))}
+          </div>
+        </div>
+      )
+    }
+
+    {
+      bilder.length > 0 ? (
+        <ul
+          class="mt-10 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4"
+          data-galerie
+        >
+          {bilder.map((bild, index) => (
+            <li
+              data-kategorie={anker(bild.data.kategorie)}
+              class:list={[
+                'group',
+                bild.data.hervorheben && 'col-span-2 row-span-2',
+              ]}
+            >
+              <button
+                type="button"
+                class="relative block h-full w-full overflow-hidden rounded-2xl bg-holz-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-wald-700"
+                data-galerie-oeffnen
+                data-index={index}
+              >
+                <img
+                  src={bild.data.bild}
+                  alt={bild.data.bildAlt ?? bild.data.titel}
+                  loading={index < 4 ? 'eager' : 'lazy'}
+                  decoding="async"
+                  class:list={[
+                    'w-full object-cover transition duration-500 group-hover:scale-105',
+                    bild.data.hervorheben
+                      ? 'aspect-square lg:aspect-auto lg:h-full'
+                      : 'aspect-square',
+                  ]}
+                />
+                <span
+                  class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-holz-950/85 to-transparent p-4 pt-10 text-left"
+                >
+                  <span class="block text-sm font-semibold text-holz-50 sm:text-base">
+                    {bild.data.titel}
+                  </span>
+                  <span class="mt-0.5 block text-xs text-holz-300">
+                    {bild.data.kategorie}
+                  </span>
+                </span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p class="mt-10 rounded-2xl border border-holz-200 bg-holz-100 p-8 text-holz-700">
+          Noch keine Bilder vorhanden. Fotos können im Redaktionsbereich unter
+          „Galerie“ hochgeladen werden.
+        </p>
+      )
+    }
+
+    <p
+      class="mt-10 hidden rounded-2xl border border-holz-200 bg-holz-100 p-6 text-holz-700"
+      data-galerie-leer
+    >
+      In dieser Kategorie sind noch keine Bilder vorhanden.
+    </p>
+  </div>
+
+  <!-- Lightbox -->
+  <dialog
+    data-lightbox
+    class="max-h-none max-w-none bg-transparent p-0 backdrop:bg-holz-950/90 open:fixed open:inset-0 open:h-full open:w-full"
+    aria-label="Bildansicht"
+  >
+    <div class="flex h-full w-full flex-col">
+      <div class="flex items-center justify-between gap-4 p-4 text-holz-50">
+        <p class="text-sm tabular-nums text-holz-300" data-lightbox-zaehler></p>
+        <button
+          type="button"
+          data-lightbox-schliessen
+          class="grid size-11 place-items-center rounded-full bg-holz-50/10 transition hover:bg-holz-50/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-holz-50"
+        >
+          <span class="sr-only">Schließen</span>
+          <svg
+            class="size-6"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            aria-hidden="true"
+          >
+            <path d="M6 6l12 12M18 6L6 18"></path>
+          </svg>
+        </button>
+      </div>
+
+      <div class="relative flex min-h-0 flex-1 items-center justify-center px-4">
+        <button
+          type="button"
+          data-lightbox-zurueck
+          class="absolute left-4 z-10 grid size-12 place-items-center rounded-full bg-holz-50/10 text-holz-50 transition hover:bg-holz-50/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-holz-50"
+        >
+          <span class="sr-only">Vorheriges Bild</span>
+          <svg
+            class="size-6"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M15 5l-7 7 7 7"></path>
+          </svg>
+        </button>
+
+        <img
+          data-lightbox-bild
+          src=""
+          alt=""
+          class="max-h-full max-w-full rounded-xl object-contain shadow-2xl"
+        />
+
+        <button
+          type="button"
+          data-lightbox-vor
+          class="absolute right-4 z-10 grid size-12 place-items-center rounded-full bg-holz-50/10 text-holz-50 transition hover:bg-holz-50/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-holz-50"
+        >
+          <span class="sr-only">Nächstes Bild</span>
+          <svg
+            class="size-6"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M9 5l7 7-7 7"></path>
+          </svg>
+        </button>
+      </div>
+
+      <div class="p-6 text-center text-holz-100">
+        <p class="font-display text-lg font-bold" data-lightbox-titel></p>
+        <p class="mx-auto mt-1 max-w-xl text-sm text-holz-300" data-lightbox-text></p>
+      </div>
+    </div>
+  </dialog>
+</BaseLayout>
+
+<script
+  type="application/json"
+  data-galerie-daten
+  set:html={JSON.stringify(
+    bilder.map((bild) => ({
+      bild: bild.data.bild,
+      alt: bild.data.bildAlt ?? bild.data.titel,
+      titel: bild.data.titel,
+      beschreibung: bild.data.beschreibung ?? '',
+    })),
+  )}
+  is:inline
+/>
+
+<script>
+  type Eintrag = {
+    bild: string;
+    alt: string;
+    titel: string;
+    beschreibung: string;
+  };
+
+  const datenEl = document.querySelector<HTMLScriptElement>('[data-galerie-daten]');
+  const raster = document.querySelector<HTMLElement>('[data-galerie]');
+  const dialog = document.querySelector<HTMLDialogElement>('[data-lightbox]');
+
+  if (datenEl && raster && dialog) {
+    const eintraege: Eintrag[] = JSON.parse(datenEl.textContent ?? '[]');
+
+    const bildEl = dialog.querySelector<HTMLImageElement>('[data-lightbox-bild]')!;
+    const titelEl = dialog.querySelector<HTMLElement>('[data-lightbox-titel]')!;
+    const textEl = dialog.querySelector<HTMLElement>('[data-lightbox-text]')!;
+    const zaehlerEl = dialog.querySelector<HTMLElement>('[data-lightbox-zaehler]')!;
+
+    // Reihenfolge der Lightbox folgt der aktuell sichtbaren Auswahl.
+    let sichtbar: number[] = eintraege.map((_, i) => i);
+    let position = 0;
+
+    const zeige = (neu: number) => {
+      if (sichtbar.length === 0) return;
+      position = (neu + sichtbar.length) % sichtbar.length;
+      const eintrag = eintraege[sichtbar[position]];
+      bildEl.src = eintrag.bild;
+      bildEl.alt = eintrag.alt;
+      titelEl.textContent = eintrag.titel;
+      textEl.textContent = eintrag.beschreibung;
+      zaehlerEl.textContent = `${position + 1} / ${sichtbar.length}`;
+    };
+
+    for (const knopf of raster.querySelectorAll<HTMLButtonElement>(
+      '[data-galerie-oeffnen]',
+    )) {
+      knopf.addEventListener('click', () => {
+        const index = Number(knopf.dataset.index);
+        const stelle = sichtbar.indexOf(index);
+        zeige(stelle === -1 ? 0 : stelle);
+        dialog.showModal();
+      });
+    }
+
+    dialog
+      .querySelector('[data-lightbox-schliessen]')
+      ?.addEventListener('click', () => dialog.close());
+    dialog
+      .querySelector('[data-lightbox-vor]')
+      ?.addEventListener('click', () => zeige(position + 1));
+    dialog
+      .querySelector('[data-lightbox-zurueck]')
+      ?.addEventListener('click', () => zeige(position - 1));
+
+    dialog.addEventListener('keydown', (event) => {
+      if (event.key === 'ArrowRight') {
+        event.preventDefault();
+        zeige(position + 1);
+      } else if (event.key === 'ArrowLeft') {
+        event.preventDefault();
+        zeige(position - 1);
+      }
+    });
+
+    // Klick auf den Hintergrund schließt.
+    dialog.addEventListener('click', (event) => {
+      if (event.target === dialog) dialog.close();
+    });
+
+    // Kategorie-Filter
+    const filter = document.querySelector<HTMLElement>('[data-galerie-filter]');
+    const leerHinweis = document.querySelector<HTMLElement>('[data-galerie-leer]');
+
+    filter?.addEventListener('click', (event) => {
+      const knopf = (event.target as HTMLElement).closest<HTMLButtonElement>(
+        '[data-filter]',
+      );
+      if (!knopf) return;
+
+      const gewaehlt = knopf.dataset.filter;
+      for (const anderer of filter.querySelectorAll<HTMLButtonElement>(
+        '[data-filter]',
+      )) {
+        anderer.setAttribute(
+          'aria-pressed',
+          String(anderer.dataset.filter === gewaehlt),
+        );
+      }
+
+      const naechsteSichtbare: number[] = [];
+      const eintraegeImRaster = raster.querySelectorAll<HTMLElement>('[data-kategorie]');
+      eintraegeImRaster.forEach((element, index) => {
+        const passt = gewaehlt === 'alle' || element.dataset.kategorie === gewaehlt;
+        element.hidden = !passt;
+        if (passt) naechsteSichtbare.push(index);
+      });
+
+      sichtbar = naechsteSichtbare;
+      if (leerHinweis) leerHinweis.classList.toggle('hidden', sichtbar.length > 0);
+    });
+  }
+</script>

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Terrasse des Schutzhauses bei Sonnenuntergang">
+  <defs><linearGradient id="a" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="#7a4c32"/><stop offset="55%" stop-color="#bf9263"/><stop offset="100%" stop-color="#e4d2ba"/>
+  </linearGradient></defs>
+  <rect width="1200" height="800" fill="url(#a)"/>
+  <circle cx="880" cy="250" r="70" fill="#f2e9dd" opacity="0.9"/>
+  <path d="M0 520 L220 458 L430 512 L640 448 L880 508 L1080 460 L1200 496 L1200 800 L0 800 Z" fill="#4c7c52"/>
+  <path d="M0 596 L260 552 L520 594 L780 546 L1040 592 L1200 560 L1200 800 L0 800 Z" fill="#2e4f34"/>
+  <rect x="0" y="640" width="1200" height="160" fill="#653f2e"/>
+  <g fill="#7a4c32">
+    <rect x="90" y="600" width="200" height="16" rx="6"/><rect x="120" y="616" width="14" height="60"/><rect x="246" y="616" width="14" height="60"/>
+    <rect x="460" y="600" width="200" height="16" rx="6"/><rect x="490" y="616" width="14" height="60"/><rect x="616" y="616" width="14" height="60"/>
+    <rect x="830" y="600" width="200" height="16" rx="6"/><rect x="860" y="616" width="14" height="60"/><rect x="986" y="616" width="14" height="60"/>
+  </g>
+  <rect x="0" y="628" width="1200" height="10" fill="#563629"/>
+</svg>

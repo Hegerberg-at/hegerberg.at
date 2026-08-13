@@ -1,0 +1,48 @@
+---
+/**
+ * Decap CMS – Redaktionsoberfläche.
+ *
+ * Liegt bewusst unter src/pages/, damit /admin/ auch im Dev-Server erreichbar
+ * ist (Astro liefert für Ordner in public/ keinen Directory-Index aus). Der
+ * Build erzeugt daraus eine statische dist/admin/index.html.
+ *
+ * Die Feldkonfiguration bleibt als reine YAML-Datei unter
+ * public/admin/config.yml und wird von Decap zur Laufzeit geladen.
+ */
+---
+
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex, nofollow" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.png" />
+    <link href="config.yml" type="text/yaml" rel="cms-config-url" />
+    <title>Redaktion – Schutzhaus am Hegerberg</title>
+  </head>
+  <body>
+    <!-- Netlify Identity Widget: Login über Git Gateway in Produktion. -->
+    <script
+      src="https://identity.netlify.com/v1/netlify-identity-widget.js"
+      is:inline></script>
+    <!-- Decap CMS -->
+    <script
+      src="https://unpkg.com/decap-cms@^3.8.4/dist/decap-cms.js"
+      is:inline></script>
+
+    <script is:inline>
+      // Nach der Einladung per E-Mail landet man auf /#invite_token=… –
+      // von dort direkt ins Admin-Panel weiterleiten.
+      if (window.netlifyIdentity) {
+        window.netlifyIdentity.on('init', (user) => {
+          if (!user) {
+            window.netlifyIdentity.on('login', () => {
+              document.location.href = '/admin/';
+            });
+          }
+        });
+      }
+    </script>
+  </body>
+</html>

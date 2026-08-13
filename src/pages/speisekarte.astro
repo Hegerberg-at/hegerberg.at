@@ -1,0 +1,101 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import SectionHeading from '../components/SectionHeading.astro';
+import SpeiseEintrag from '../components/SpeiseEintrag.astro';
+import AllergenLegende from '../components/AllergenLegende.astro';
+
+const KATEGORIEN = [
+  'Suppen',
+  'Vorspeisen',
+  'Hauptspeisen',
+  'Desserts',
+  'Getränke',
+] as const;
+
+const alle = await getCollection('speisekarte');
+
+const gruppiert = KATEGORIEN.map((kategorie) => ({
+  kategorie,
+  speisen: alle
+    .filter((speise) => speise.data.kategorie === kategorie)
+    .sort(
+      (a, b) =>
+        a.data.reihenfolge - b.data.reihenfolge ||
+        a.data.name.localeCompare(b.data.name, 'de-AT'),
+    ),
+})).filter((gruppe) => gruppe.speisen.length > 0);
+
+const verwendeteAllergene = [
+  ...new Set(alle.flatMap((speise) => speise.data.allergene)),
+];
+
+const anker = (kategorie: string) =>
+  kategorie.toLowerCase().replace(/ä/g, 'ae').replace(/[^a-z]/g, '-');
+---
+
+<BaseLayout
+  title="Speisekarte"
+  description="Die Speisekarte des Schutzhauses am Hegerberg: Suppen, Vorspeisen, österreichische Hauptspeisen, Mehlspeisen und Getränke – mit Allergenkennzeichnung."
+>
+  <div class="container-page py-16 sm:py-20">
+    <SectionHeading
+      as="h1"
+      eyebrow="Speisen & Getränke"
+      titel="Unsere Speisekarte"
+      text="Bodenständige österreichische Küche mit Produkten aus der Region. Alle Preise in Euro inklusive Steuern und Abgaben."
+    />
+
+    <nav aria-label="Kategorien" class="mt-8">
+      <ul class="flex flex-wrap gap-2">
+        {
+          gruppiert.map((gruppe) => (
+            <li>
+              <a
+                href={`#${anker(gruppe.kategorie)}`}
+                class="inline-block rounded-full border border-holz-300 px-4 py-2 text-sm font-semibold text-holz-800 transition hover:border-wald-600 hover:bg-wald-50 hover:text-wald-800"
+              >
+                {gruppe.kategorie}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    <div class="mt-14 space-y-14">
+      {
+        gruppiert.map((gruppe) => (
+          <section
+            id={anker(gruppe.kategorie)}
+            class="scroll-mt-28"
+            aria-labelledby={`titel-${anker(gruppe.kategorie)}`}
+          >
+            <h2
+              id={`titel-${anker(gruppe.kategorie)}`}
+              class="border-b-2 border-wald-700 pb-3 text-2xl font-bold text-holz-950 sm:text-3xl"
+            >
+              {gruppe.kategorie}
+            </h2>
+            <ul class="divide-y divide-holz-200">
+              {gruppe.speisen.map((speise) => (
+                <SpeiseEintrag
+                  name={speise.data.name}
+                  beschreibung={speise.data.beschreibung}
+                  preis={speise.data.preis}
+                  allergene={speise.data.allergene}
+                  verfuegbar={speise.data.verfuegbar}
+                  hausspezialitaet={speise.data.hausspezialitaet}
+                />
+              ))}
+            </ul>
+          </section>
+        ))
+      }
+    </div>
+
+    <div class="mt-16">
+      <AllergenLegende codes={verwendeteAllergene} />
+    </div>
+  </div>
+</BaseLayout>

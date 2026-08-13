@@ -1,0 +1,30 @@
+---
+export interface Props {
+  eyebrow?: string;
+  titel: string;
+  text?: string;
+  zentriert?: boolean;
+  /** Überschriften-Ebene, damit die Dokumentstruktur stimmt. */
+  as?: 'h1' | 'h2' | 'h3';
+}
+
+const {
+  eyebrow,
+  titel,
+  text,
+  zentriert = false,
+  as: Tag = 'h2',
+} = Astro.props;
+---
+
+<div class:list={['max-w-2xl', zentriert && 'mx-auto text-center']}>
+  {eyebrow && <p class="eyebrow">{eyebrow}</p>}
+  <Tag class="mt-2 text-3xl font-bold text-holz-950 sm:text-4xl">{titel}</Tag>
+  {
+    text && (
+      <p class="mt-4 text-base leading-relaxed text-holz-700 sm:text-lg">
+        {text}
+      </p>
+    )
+  }
+</div>

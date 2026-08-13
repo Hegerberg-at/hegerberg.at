@@ -1,0 +1,91 @@
+---
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import SectionHeading from '../components/SectionHeading.astro';
+
+const eintraege = (await getCollection('geschichte')).sort(
+  (a, b) => a.data.reihenfolge - b.data.reihenfolge,
+);
+
+const kapitel = await Promise.all(
+  eintraege.map(async (eintrag) => ({
+    data: eintrag.data,
+    Content: (await render(eintrag)).Content,
+  })),
+);
+---
+
+<BaseLayout
+  title="Geschichte"
+  description="Vom Unterstand für Waldarbeiter zum Ausflugsziel: die Geschichte des Schutzhauses am Hegerberg im Wienerwald."
+>
+  <div class="container-page py-16 sm:py-20">
+    <SectionHeading
+      as="h1"
+      eyebrow="Unser Haus"
+      titel="Die Geschichte des Schutzhauses"
+      text="Ein Haus, das gewachsen ist – Schritt für Schritt, Generation für Generation."
+    />
+
+    <div class="mt-16 space-y-16">
+      {
+        kapitel.map(({ data, Content }, index) => (
+          <article class="relative grid gap-8 lg:grid-cols-[10rem_1fr]">
+            <div class="lg:sticky lg:top-28 lg:self-start">
+              {data.jahr && (
+                <p class="font-display text-3xl font-bold text-wald-700 lg:text-4xl">
+                  {data.jahr}
+                </p>
+              )}
+              <p class="mt-1 text-xs uppercase tracking-[0.2em] text-holz-500">
+                Kapitel {index + 1}
+              </p>
+            </div>
+
+            <div>
+              <h2 class="text-2xl font-bold text-holz-950 sm:text-3xl">
+                {data.titel}
+              </h2>
+              <p class="mt-3 text-lg leading-relaxed text-holz-700">
+                {data.beschreibung}
+              </p>
+
+              {data.bild && (
+                <img
+                  src={data.bild}
+                  alt={data.bildAlt ?? ''}
+                  loading="lazy"
+                  decoding="async"
+                  class="mt-6 w-full rounded-2xl object-cover shadow-lg"
+                />
+              )}
+
+              <div class="prose-hegerberg mt-6 space-y-4 leading-relaxed text-holz-800">
+                <Content />
+              </div>
+            </div>
+          </article>
+        ))
+      }
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .prose-hegerberg :global(p) {
+    margin-block: 1rem;
+  }
+  .prose-hegerberg :global(h2),
+  .prose-hegerberg :global(h3) {
+    margin-block: 1.75rem 0.5rem;
+    font-weight: 700;
+  }
+  .prose-hegerberg :global(ul) {
+    list-style: disc;
+    padding-inline-start: 1.25rem;
+  }
+  .prose-hegerberg :global(a) {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+</style>

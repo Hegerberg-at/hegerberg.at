@@ -1,0 +1,99 @@
+---
+import '../styles/global.css';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { site, adresseEinzeilig } from '../lib/site';
+import { getOeffnungszeiten, schemaOpeningHours } from '../lib/oeffnungszeiten';
+
+interface Props {
+  title?: string;
+  description?: string;
+  /** Blendet den transparenten Header-Modus ein (nur Startseite mit Hero). */
+  transparentHeader?: boolean;
+}
+
+const {
+  title,
+  description = site.beschreibung,
+  transparentHeader = false,
+} = Astro.props;
+
+const seitentitel = title ? `${title} – ${site.name}` : `${site.name}`;
+const canonical = new URL(Astro.url.pathname, Astro.site ?? site.domain).href;
+
+const tage = await getOeffnungszeiten();
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Restaurant',
+  name: site.name,
+  description: site.beschreibung,
+  url: site.domain,
+  telephone: site.telefon,
+  email: site.email,
+  servesCuisine: 'Österreichisch',
+  priceRange: '€€',
+  address: {
+    '@type': 'PostalAddress',
+    streetAddress: site.adresse.strasse,
+    postalCode: site.adresse.plz,
+    addressLocality: site.adresse.ort,
+    addressRegion: site.adresse.bundesland,
+    addressCountry: 'AT',
+  },
+  geo: {
+    '@type': 'GeoCoordinates',
+    latitude: site.geo.lat,
+    longitude: site.geo.lng,
+  },
+  openingHours: schemaOpeningHours(tage),
+};
+---
+
+<!doctype html>
+<html lang="de-AT">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{seitentitel}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.png" />
+    <meta name="generator" content={Astro.generator} />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={site.name} />
+    <meta property="og:title" content={seitentitel} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:locale" content="de_AT" />
+
+    <meta name="geo.region" content="AT-3" />
+    <meta name="geo.placename" content={adresseEinzeilig} />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Bitter:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap"
+    />
+
+    <script
+      type="application/ld+json"
+      set:html={JSON.stringify(jsonLd)}
+      is:inline
+    />
+  </head>
+  <body class="flex min-h-screen flex-col">
+    <a
+      href="#inhalt"
+      class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-wald-700 focus:px-4 focus:py-2 focus:text-holz-50"
+    >
+      Zum Inhalt springen
+    </a>
+    <Header transparent={transparentHeader} />
+    <main id="inhalt" class="flex-1">
+      <slot />
+    </main>
+    <Footer />
+  </body>
+</html>

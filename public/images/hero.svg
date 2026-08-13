@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Stilisierte Panoramaansicht der Wienerwald-Hügel">
+  <defs>
+    <linearGradient id="himmel" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#563629"/>
+      <stop offset="35%" stop-color="#97613b"/>
+      <stop offset="70%" stop-color="#d2b48f"/>
+      <stop offset="100%" stop-color="#e4d2ba"/>
+    </linearGradient>
+    <linearGradient id="huegel1" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#6d9a70"/>
+      <stop offset="100%" stop-color="#4c7c52"/>
+    </linearGradient>
+    <linearGradient id="huegel2" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#39623f"/>
+      <stop offset="100%" stop-color="#2e4f34"/>
+    </linearGradient>
+    <linearGradient id="huegel3" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#27402c"/>
+      <stop offset="100%" stop-color="#101e13"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1600" height="900" fill="url(#himmel)"/>
+  <!-- Sonne über allen Kämmen, damit sie nicht angeschnitten wirkt -->
+  <circle cx="1180" cy="300" r="86" fill="#f2e9dd" opacity="0.9"/>
+  <circle cx="1180" cy="300" r="150" fill="#f2e9dd" opacity="0.12"/>
+
+  <!-- Ferne Kämme -->
+  <path fill="#bf9263" opacity="0.55"
+        d="M0 560 L140 512 L280 548 L430 486 L580 536 L740 470 L900 520 L1060 468 L1220 514 L1380 476 L1600 528 L1600 900 L0 900 Z"/>
+  <!-- Mittlerer Rücken -->
+  <path fill="url(#huegel1)"
+        d="M0 640 L180 588 L340 626 L520 560 L700 618 L880 566 L1060 620 L1260 574 L1440 622 L1600 592 L1600 900 L0 900 Z"/>
+  <!-- Vorderer Rücken -->
+  <path fill="url(#huegel2)"
+        d="M0 726 L200 678 L400 716 L620 660 L840 712 L1080 668 L1320 714 L1600 676 L1600 900 L0 900 Z"/>
+  <!-- Waldsaum im Vordergrund -->
+  <path fill="url(#huegel3)"
+        d="M0 812 L160 786 L340 810 L540 780 L760 806 L980 776 L1220 804 L1440 782 L1600 800 L1600 900 L0 900 Z"/>
+
+  <!-- Angedeutete Fichten am Grat -->
+  <g fill="#101e13" opacity="0.9">
+    <path d="M240 786 l14 -46 l14 46 z"/>
+    <path d="M282 790 l11 -36 l11 36 z"/>
+    <path d="M1032 778 l16 -52 l16 52 z"/>
+    <path d="M1078 782 l12 -40 l12 40 z"/>
+    <path d="M1120 786 l10 -32 l10 32 z"/>
+    <path d="M622 662 l13 -42 l13 42 z"/>
+  </g>
+</svg>

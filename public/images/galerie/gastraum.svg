@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1250" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Gastraum mit Kachelofen">
+  <rect width="1000" height="1250" fill="#7a4c32"/>
+  <rect x="0" y="0" width="1000" height="700" fill="#653f2e"/>
+  <g fill="#563629">
+    <rect x="0" y="120" width="1000" height="8"/><rect x="0" y="300" width="1000" height="8"/><rect x="0" y="480" width="1000" height="8"/>
+  </g>
+  <rect x="620" y="180" width="300" height="520" rx="18" fill="#e4d2ba"/>
+  <g fill="#d2b48f"><rect x="640" y="200" width="120" height="120" rx="8"/><rect x="780" y="200" width="120" height="120" rx="8"/>
+    <rect x="640" y="340" width="120" height="120" rx="8"/><rect x="780" y="340" width="120" height="120" rx="8"/></g>
+  <rect x="700" y="500" width="140" height="120" rx="10" fill="#97613b"/>
+  <circle cx="770" cy="560" r="34" fill="#bf9263"/>
+  <rect x="0" y="700" width="1000" height="550" fill="#97613b"/>
+  <rect x="80" y="800" width="500" height="26" rx="10" fill="#d2b48f"/>
+  <rect x="130" y="826" width="20" height="150" fill="#7a4c32"/><rect x="510" y="826" width="20" height="150" fill="#7a4c32"/>
+  <circle cx="240" cy="782" r="24" fill="#f2e9dd"/><circle cx="420" cy="782" r="24" fill="#f2e9dd"/>
+  <rect x="310" y="742" width="12" height="46" fill="#e4d2ba"/><circle cx="316" cy="736" r="12" fill="#bf9263"/>
+</svg>
