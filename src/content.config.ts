@@ -32,6 +32,31 @@ const WOCHENTAGE = [
   'Sonntag',
 ] as const;
 
+/** Wiederkehrender Aufbau eines Abschnitts-Titels (siehe SectionHeading.astro). */
+const abschnitt = z.object({
+  eyebrow: z.string().optional(),
+  titel: z.string(),
+  text: z.string().optional(),
+});
+
+/** Einzelner Eintrag – die redaktionellen Texte der Startseite. */
+const startseite = defineCollection({
+  loader: glob({ base: './src/content/startseite', pattern: '**/*.md' }),
+  schema: z.object({
+    hero: z.object({
+      bild: z.string().optional(),
+      titel: z.string().optional(),
+      untertitel: z.string().optional(),
+    }),
+    willkommen: abschnitt,
+    spezialitaeten: abschnitt,
+    veranstaltungen: abschnitt,
+    cta: z.object({
+      titel: z.string(),
+    }),
+  }),
+});
+
 const speisekarte = defineCollection({
   loader: glob({ base: './src/content/speisekarte', pattern: '**/*.md' }),
   schema: z.object({
@@ -120,6 +145,7 @@ const galerie = defineCollection({
 });
 
 export const collections = {
+  startseite,
   speisekarte,
   oeffnungszeiten,
   geschichte,

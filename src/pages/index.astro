@@ -1,5 +1,5 @@
 ---
-import { getCollection } from 'astro:content';
+import { getCollection, getEntry } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Hero from '../components/Hero.astro';
 import OeffnungszeitenWidget from '../components/OeffnungszeitenWidget.astro';
@@ -7,6 +7,14 @@ import SectionHeading from '../components/SectionHeading.astro';
 import EventCard from '../components/EventCard.astro';
 import { site, adresseEinzeilig } from '../lib/site';
 import { formatPreis } from '../lib/format';
+
+/** Redaktionelle Texte der Startseite (Decap-Collection „startseite“). */
+const startseite = await getEntry('startseite', 'index');
+if (!startseite) {
+  throw new Error('src/content/startseite/index.md fehlt.');
+}
+const { hero, willkommen, spezialitaeten: kueche, cta } = startseite.data;
+const veranstaltungenText = startseite.data.veranstaltungen;
 
 const heute = new Date();
 heute.setHours(0, 0, 0, 0);
@@ -27,16 +35,16 @@ const geschichte = (await getCollection('geschichte')).sort(
 ---
 
 <BaseLayout transparentHeader>
-  <Hero />
+  <Hero bild={hero.bild} titel={hero.titel} untertitel={hero.untertitel} />
 
   <!-- Öffnungszeiten prominent direkt unter dem Hero -->
   <section class="container-page -mt-16 sm:-mt-20">
     <div class="grid gap-8 lg:grid-cols-[1fr_minmax(0,26rem)]">
       <div class="order-2 flex flex-col justify-center lg:order-1 lg:pt-20">
         <SectionHeading
-          eyebrow="Willkommen"
-          titel="Einkehren, wo der Wienerwald am schönsten ist"
-          text={site.beschreibung}
+          eyebrow={willkommen.eyebrow}
+          titel={willkommen.titel}
+          text={willkommen.text}
         />
         <dl class="mt-8 grid gap-6 sm:grid-cols-3">
           <div>
@@ -81,9 +89,9 @@ const geschichte = (await getCollection('geschichte')).sort(
       <section class="container-page mt-24">
         <div class="flex flex-wrap items-end justify-between gap-6">
           <SectionHeading
-            eyebrow="Aus der Küche"
-            titel="Unsere Hausspezialitäten"
-            text="Kurze Karte, lange Tradition – gekocht mit Produkten aus der Region."
+            eyebrow={kueche.eyebrow}
+            titel={kueche.titel}
+            text={kueche.text}
           />
           <a href="/speisekarte/" class="btn-outline">
             Ganze Speisekarte
@@ -141,9 +149,9 @@ const geschichte = (await getCollection('geschichte')).sort(
     events.length > 0 && (
       <section class="container-page mt-24">
         <SectionHeading
-          eyebrow="Was ansteht"
-          titel="Veranstaltungen am Hegerberg"
-          text="Musik, Wanderungen und Feste – das ganze Jahr über."
+          eyebrow={veranstaltungenText.eyebrow}
+          titel={veranstaltungenText.titel}
+          text={veranstaltungenText.text}
           zentriert
         />
         <div class="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -176,7 +184,7 @@ const geschichte = (await getCollection('geschichte')).sort(
     >
       <div>
         <h2 class="text-2xl font-bold text-holz-950 sm:text-3xl">
-          Auf ein Achterl vorbeikommen?
+          {cta.titel}
         </h2>
         <p class="mt-3 text-holz-700">
           {adresseEinzeilig} · Reservierungen unter {site.telefonAnzeige}

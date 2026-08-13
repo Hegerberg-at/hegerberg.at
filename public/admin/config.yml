@@ -30,6 +30,78 @@ media_folder: public/images/uploads
 public_folder: /images/uploads
 
 collections:
+  # ---------------------------------------------------------------- Startseite
+  - name: startseite
+    label: Startseite
+    description: Die Texte der Willkommens-Seite. Speisen, Veranstaltungen und
+      Öffnungszeiten werden aus den jeweiligen Bereichen übernommen.
+    files:
+      - name: index
+        label: Startseite
+        file: src/content/startseite/index.md
+        format: yaml-frontmatter
+        preview: false
+        fields:
+          - name: hero
+            label: Titelbild-Bereich
+            widget: object
+            fields:
+              - name: bild
+                label: Titelbild
+                widget: image
+                required: false
+                choose_url: false
+                hint: Breites Querformat, mindestens 2000 px. Ohne Angabe wird das
+                  Standard-Panorama verwendet.
+              - name: titel
+                label: Große Überschrift
+                widget: string
+                required: false
+                hint: Ohne Angabe wird „Schutzhaus am Hegerberg“ verwendet.
+              - name: untertitel
+                label: Untertitel
+                widget: text
+                required: false
+          - name: willkommen
+            label: Begrüßung
+            widget: object
+            fields:
+              - { name: eyebrow, label: Kleine Zeile darüber, widget: string, required: false }
+              - { name: titel, label: Überschrift, widget: string }
+              - name: text
+                label: Text
+                widget: text
+                required: false
+          - name: spezialitaeten
+            label: 'Abschnitt „Hausspezialitäten“'
+            widget: object
+            hint: Welche Speisen erscheinen, wird in der Speisekarte über
+              „Hausspezialität“ festgelegt.
+            fields:
+              - { name: eyebrow, label: Kleine Zeile darüber, widget: string, required: false }
+              - { name: titel, label: Überschrift, widget: string }
+              - name: text
+                label: Text
+                widget: text
+                required: false
+          - name: veranstaltungen
+            label: 'Abschnitt „Veranstaltungen“'
+            widget: object
+            hint: Zeigt automatisch die drei nächsten Veranstaltungen.
+            fields:
+              - { name: eyebrow, label: Kleine Zeile darüber, widget: string, required: false }
+              - { name: titel, label: Überschrift, widget: string }
+              - name: text
+                label: Text
+                widget: text
+                required: false
+          - name: cta
+            label: Abschluss-Box
+            widget: object
+            hint: Adresse und Telefonnummer werden automatisch ergänzt.
+            fields:
+              - { name: titel, label: Überschrift, widget: string }
+
   # ---------------------------------------------------------------- Speisekarte
   - name: speisekarte
     label: Speisekarte
