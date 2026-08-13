@@ -8,7 +8,7 @@
 
 backend:
   name: github
-  repo: stefanschlipfi/content-hegerberg.at
+  repo: stefanschlipfi/hegerberg.at
   base_url: http://localhost:3011
 
   branch: main
