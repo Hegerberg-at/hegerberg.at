@@ -3,7 +3,11 @@
 #
 # Bei jedem Push auf main (also auch bei Änderungen über /admin/) baut der
 # Runner die Seite und lädt dist/ per FTP in den Webspace. Auf dem Server
-# selbst läuft nichts – die Seite ist statisch.
+# läuft nur PHP für den OAuth-Login – die Seite selbst ist statisch.
+#
+# Die Upload-Action überträgt immer den kompletten Ordner und löscht auf dem
+# Server nichts. Gelöschte Seiten bleiben also liegen, bis sie von Hand aus
+# dem Dateimanager entfernt werden.
 #
 # Die Zugangsdaten liegen in der GitHub-Environment „FTP“
 # (Settings → Environments → FTP → Environment secrets):
@@ -43,8 +47,10 @@ jobs:
         with:
           bun-version: latest
 
+      # Ohne bun.lock im Repo kann hier nicht gegen einen festen Stand
+      # installiert werden – die Versionen ergeben sich aus package.json.
       - name: Abhängigkeiten installieren
-        run: bun install --frozen-lockfile
+        run: bun install
 
       - name: Seite bauen
         run: bun run build
@@ -80,19 +86,18 @@ jobs:
             echo "PHP auf dem Runner nicht verfügbar – Syntaxprüfung übersprungen."
           fi
 
+          # Die Vorlage ist reine Dokumentation und hat auf dem Server nichts
+          # verloren; die Upload-Action kennt keine Ausschlussliste.
+          rm -f dist/oauth/config.example.php
+
+      # Docker-Action – dadurch unabhängig von der Node-Version des Runners.
       - name: Per FTP hochladen
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        uses: GenieTim/ftp-action@v4.0.1
         with:
-          server: ${{ secrets.FTPSERVER }}
-          username: ${{ secrets.FTPUSER }}
+          host: ${{ secrets.FTPSERVER }}
+          user: ${{ secrets.FTPUSER }}
           password: ${{ secrets.FTPPASSWORD }}
-          local-dir: ./dist/
-          server-dir: /public_html/
-          # Die Action merkt sich den letzten Stand in dieser Datei und
-          # überträgt beim nächsten Mal nur die Unterschiede.
-          state-name: .ftp-deploy-sync-state.json
-          exclude: |
-            **/.git*
-            **/.git*/**
-            **/node_modules/**
-            oauth/config.example.php
+          localDir: dist
+          remoteDir: public_html
+          # Ohne TLS gingen die FTP-Zugangsdaten im Klartext über die Leitung.
+          forceSsl: false
