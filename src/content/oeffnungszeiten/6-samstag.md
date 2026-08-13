@@ -1,9 +1,8 @@
 ---
 tag: Samstag
 reihenfolge: 6
-geschlossen: false
-von: "10:00"
-bis: "22:00"
-hinweis: Bei starkem Schlechtwetter kann früher geschlossen werden.
+geschlossen: true
+von: 10:00
+bis: 22:00
+hinweis: Aktuelle Öffnungzeiten beim Wirt Peter Hurschka 06801287645 erfragen
 ---
-
