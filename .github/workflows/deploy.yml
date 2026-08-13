@@ -94,9 +94,9 @@ jobs:
       - name: Per FTP hochladen
         uses: dennisameling/ftp-upload-action@v2
         with:
-          server: ${{ secrets.FTPSERVER }}
           username: ${{ secrets.FTPUSER }}
           password: ${{ secrets.FTPPASSWORD }}
+          server: ${{ secrets.FTPSERVER }}
           local_dir: dist/
           server_dir: public_html/
           secure: false
