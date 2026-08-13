@@ -7,7 +7,7 @@
 export const site = {
   name: 'Schutzhaus am Hegerberg',
   kurzname: 'Hegerberg',
-  claim: 'Gastfreundschaft auf 716 Metern im Wienerwald',
+  claim: 'Das Schutzhaus am Hegerberg bei Stössing',
   beschreibung:
     'Das Schutzhaus am Hegerberg bei Stössing',
   domain: 'https://hegerberg.at',
