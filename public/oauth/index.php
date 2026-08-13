@@ -14,7 +14,10 @@
  *   4. Diese Datei tauscht code+secret gegen ein Token
  *   5. Das Token geht per postMessage an das Admin-Fenster, Popup schließt
  *
- * Einrichtung siehe public/oauth/config.example.php.
+ * Die Zugangsdaten kommen aus config.php. Diese Datei liegt bewusst nicht im
+ * Repository – sie wird bei jedem Deploy aus den GitHub-Secrets erzeugt
+ * (siehe .github/workflows/deploy.yml). Für lokale Tests siehe
+ * config.example.php.
  */
 
 declare(strict_types=1);

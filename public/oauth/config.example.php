@@ -2,18 +2,19 @@
 /**
  * Vorlage für die Zugangsdaten des OAuth-Proxys.
  *
- * Diese Datei gehört NICHT ins Git-Repository, sobald echte Werte drinstehen –
- * deshalb liegt sie hier nur als Beispiel. Vorgehen:
+ * Im Normalbetrieb wird config.php beim Deploy automatisch aus den
+ * GitHub-Secrets OAUTH_CLIENT_ID und OAUTH_CLIENT_SECRET erzeugt
+ * (Environment „FTP“, siehe .github/workflows/deploy.yml) – von Hand ist
+ * dort nichts zu tun.
  *
- *   1. Auf GitHub unter Settings → Developer settings → OAuth Apps eine neue
- *      App anlegen:
- *        Homepage URL:               https://hegerberg.at
- *        Authorization callback URL: https://hegerberg.at/oauth/
- *   2. Diese Datei kopieren, Client-ID und Secret eintragen.
- *   3. Die Kopie einmalig per FTP nach /public_html/oauth/config.php laden.
+ * Diese Vorlage ist nur für lokale Tests gedacht: kopieren nach
+ * public/oauth/config.php, Werte eintragen. Die Kopie ist über .gitignore
+ * vom Repository ausgeschlossen.
  *
- * Der Deploy überschreibt sie nicht: die FTP-Action löscht nur Dateien, die
- * sie selbst hochgeladen hat.
+ * Die zugehörige GitHub-OAuth-App (Settings → Developer settings →
+ * OAuth Apps) braucht:
+ *   Homepage URL:               https://hegerberg.at
+ *   Authorization callback URL: https://hegerberg.at/oauth/
  */
 
 declare(strict_types=1);

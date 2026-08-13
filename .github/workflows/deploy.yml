@@ -7,9 +7,11 @@
 #
 # Die Zugangsdaten liegen in der GitHub-Environment „FTP“
 # (Settings → Environments → FTP → Environment secrets):
-#   FTPSERVER    FTP-Host aus hPanel, z. B. ftp.hegerberg.at
-#   FTPUSER      FTP-Benutzer aus hPanel
-#   FTPPASSWORD  FTP-Passwort
+#   FTPSERVER             FTP-Host aus hPanel, z. B. ftp.hegerberg.at
+#   FTPUSER               FTP-Benutzer aus hPanel
+#   FTPPASSWORD           FTP-Passwort
+#   OAUTH_CLIENT_ID       Client-ID der GitHub-OAuth-App
+#   OAUTH_CLIENT_SECRET   Client-Secret der GitHub-OAuth-App
 #
 # Wichtig: Environment-Secrets sind nur sichtbar, wenn der Job die Environment
 # unten über `environment:` anfordert – sonst sind sie schlicht leer.
@@ -47,6 +49,37 @@ jobs:
       - name: Seite bauen
         run: bun run build
 
+      - name: OAuth-Zugangsdaten erzeugen
+        env:
+          CLIENT_ID: ${{ secrets.OAUTH_CLIENT_ID }}
+          CLIENT_SECRET: ${{ secrets.OAUTH_CLIENT_SECRET }}
+        run: |
+          set -euo pipefail
+          : "${CLIENT_ID:?Secret OAUTH_CLIENT_ID fehlt in der Environment FTP}"
+          : "${CLIENT_SECRET:?Secret OAUTH_CLIENT_SECRET fehlt in der Environment FTP}"
+
+          # Für einfach gequotete PHP-Strings müssen nur \ und ' maskiert
+          # werden. Die Werte werden dabei nie ausgegeben.
+          id=${CLIENT_ID//\\/\\\\}; id=${id//\'/\\\'}
+          secret=${CLIENT_SECRET//\\/\\\\}; secret=${secret//\'/\\\'}
+
+          cat > dist/oauth/config.php <<EOF
+          <?php
+          // Wird bei jedem Deploy aus den GitHub-Secrets erzeugt – nicht von
+          // Hand bearbeiten.
+          return [
+              'client_id' => '${id}',
+              'client_secret' => '${secret}',
+          ];
+          EOF
+
+          # Syntaxprüfung, falls der Runner PHP mitbringt – sonst nur ein Hinweis.
+          if command -v php >/dev/null; then
+            php -l dist/oauth/config.php
+          else
+            echo "PHP auf dem Runner nicht verfügbar – Syntaxprüfung übersprungen."
+          fi
+
       - name: Per FTP hochladen
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
@@ -58,11 +91,8 @@ jobs:
           # Die Action merkt sich den letzten Stand in dieser Datei und
           # überträgt beim nächsten Mal nur die Unterschiede.
           state-name: .ftp-deploy-sync-state.json
-          # oauth/config.php wird einmalig von Hand hochgeladen und enthält das
-          # OAuth-Secret – der Deploy darf sie nicht anfassen.
           exclude: |
             **/.git*
             **/.git*/**
             **/node_modules/**
-            oauth/config.php
             oauth/config.example.php
