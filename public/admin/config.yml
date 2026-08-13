@@ -209,14 +209,16 @@ collections:
         required: false
         pattern:
           ['^([01][0-9]|2[0-3]):[0-5][0-9]$', 'Bitte im Format HH:MM angeben']
-        hint: 'Format HH:MM, z. B. 11:00 – leer lassen, wenn Ruhetag.'
+        hint: 'Format HH:MM, z. B. 11:00. An einem Ruhetag wird die Zeit ignoriert
+          und muss nicht gelöscht werden.'
       - name: bis
         label: Geöffnet bis
         widget: string
         required: false
         pattern:
           ['^([01][0-9]|2[0-3]):[0-5][0-9]$', 'Bitte im Format HH:MM angeben']
-        hint: 'Format HH:MM, z. B. 22:00 – leer lassen, wenn Ruhetag.'
+        hint: 'Format HH:MM, z. B. 22:00. An einem Ruhetag wird die Zeit ignoriert
+          und muss nicht gelöscht werden.'
       - name: hinweis
         label: Hinweis
         widget: string

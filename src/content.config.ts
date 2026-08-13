@@ -32,6 +32,24 @@ const WOCHENTAGE = [
   'Sonntag',
 ] as const;
 
+/**
+ * Decap CMS entfernt geleerte Felder nicht aus dem Frontmatter, sondern
+ * schreibt einen leeren String (`von: ""`). Für Felder mit Formatprüfung
+ * würde das die Schema-Validierung brechen – deshalb wird ein leerer Wert
+ * hier wie „nicht gesetzt“ behandelt.
+ */
+const leerAlsUndefined = (wert: unknown) =>
+  typeof wert === 'string' && wert.trim() === '' ? undefined : wert;
+
+/** Uhrzeit im Format "HH:MM" – leeres Feld erlaubt. */
+const uhrzeit = z.preprocess(
+  leerAlsUndefined,
+  z
+    .string()
+    .regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'Format muss HH:MM sein')
+    .optional(),
+);
+
 /** Wiederkehrender Aufbau eines Abschnitts-Titels (siehe SectionHeading.astro). */
 const abschnitt = z.object({
   eyebrow: z.string().optional(),
@@ -80,23 +98,26 @@ const speisekarte = defineCollection({
 
 const oeffnungszeiten = defineCollection({
   loader: glob({ base: './src/content/oeffnungszeiten', pattern: '**/*.md' }),
-  schema: z.object({
-    tag: z.enum(WOCHENTAGE),
-    /** Sortierung Mo=1 … So=7 */
-    reihenfolge: z.number().int().min(1).max(7),
-    geschlossen: z.boolean().default(false),
-    /** Format "HH:MM" – nur relevant wenn geschlossen === false */
-    von: z
-      .string()
-      .regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'Format muss HH:MM sein')
-      .optional(),
-    bis: z
-      .string()
-      .regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'Format muss HH:MM sein')
-      .optional(),
-    /** z.B. "Ruhetag" oder "Bei Schlechtwetter geschlossen" */
-    hinweis: z.string().optional(),
-  }),
+  schema: z
+    .object({
+      tag: z.enum(WOCHENTAGE),
+      /** Sortierung Mo=1 … So=7 */
+      reihenfolge: z.number().int().min(1).max(7),
+      geschlossen: z.boolean().default(false),
+      /** Format "HH:MM" – nur relevant wenn geschlossen === false */
+      von: uhrzeit,
+      bis: uhrzeit,
+      /** z.B. "Ruhetag" oder "Bei Schlechtwetter geschlossen" */
+      hinweis: z.string().optional(),
+    })
+    /**
+     * An einem Ruhetag zählen im CMS stehengebliebene Uhrzeiten nicht – die
+     * Datei behält sie (praktisch beim Zurückschalten), die Website ignoriert
+     * sie zuverlässig.
+     */
+    .transform((tag) =>
+      tag.geschlossen ? { ...tag, von: undefined, bis: undefined } : tag,
+    ),
 });
 
 const geschichte = defineCollection({
@@ -118,8 +139,8 @@ const events = defineCollection({
     titel: z.string(),
     datum: z.coerce.date(),
     /** Optionales Enddatum für mehrtägige Veranstaltungen. */
-    datumBis: z.coerce.date().optional(),
-    uhrzeit: z.string().optional(),
+    datumBis: z.preprocess(leerAlsUndefined, z.coerce.date().optional()),
+    uhrzeit,
     beschreibung: z.string(),
     bild: z.string().optional(),
     bildAlt: z.string().optional(),
