@@ -1,0 +1,68 @@
+#
+# Deployment auf das Hostinger-Webhosting.
+#
+# Bei jedem Push auf main (also auch bei Änderungen über /admin/) baut der
+# Runner die Seite und lädt dist/ per FTP in den Webspace. Auf dem Server
+# selbst läuft nichts – die Seite ist statisch.
+#
+# Die Zugangsdaten liegen in der GitHub-Environment „FTP“
+# (Settings → Environments → FTP → Environment secrets):
+#   FTPSERVER    FTP-Host aus hPanel, z. B. ftp.hegerberg.at
+#   FTPUSER      FTP-Benutzer aus hPanel
+#   FTPPASSWORD  FTP-Passwort
+#
+# Wichtig: Environment-Secrets sind nur sichtbar, wenn der Job die Environment
+# unten über `environment:` anfordert – sonst sind sie schlicht leer.
+
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  # Erlaubt einen manuellen Deploy über die Actions-Oberfläche.
+  workflow_dispatch:
+
+# Nie zwei Deployments gleichzeitig; ein neuerer Push wartet auf den laufenden.
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Bauen und hochladen
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: FTP
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Abhängigkeiten installieren
+        run: bun install --frozen-lockfile
+
+      - name: Seite bauen
+        run: bun run build
+
+      - name: Per FTP hochladen
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTPSERVER }}
+          username: ${{ secrets.FTPUSER }}
+          password: ${{ secrets.FTPPASSWORD }}
+          local-dir: ./dist/
+          server-dir: /public_html/
+          # Die Action merkt sich den letzten Stand in dieser Datei und
+          # überträgt beim nächsten Mal nur die Unterschiede.
+          state-name: .ftp-deploy-sync-state.json
+          # oauth/config.php wird einmalig von Hand hochgeladen und enthält das
+          # OAuth-Secret – der Deploy darf sie nicht anfassen.
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/node_modules/**
+            oauth/config.php
+            oauth/config.example.php

@@ -9,7 +9,10 @@
 backend:
   name: github
   repo: stefanschlipfi/hegerberg.at
-  base_url: http://localhost:3011
+  # OAuth-Proxy auf derselben Domain (public/oauth/index.php). Nur der Login
+  # läuft darüber – gespeichert wird direkt über die GitHub-API aus dem Browser.
+  base_url: https://hegerberg.at
+  auth_endpoint: oauth/
 
   branch: main
   commit_messages:

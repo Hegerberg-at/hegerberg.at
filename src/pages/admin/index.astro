@@ -22,27 +22,9 @@
     <title>Redaktion – Schutzhaus am Hegerberg</title>
   </head>
   <body>
-    <!-- Netlify Identity Widget: Login über Git Gateway in Produktion. -->
-    <script
-      src="https://identity.netlify.com/v1/netlify-identity-widget.js"
-      is:inline></script>
-    <!-- Decap CMS -->
+    <!-- Decap CMS. Der Login läuft über /oauth/ (siehe public/oauth/index.php). -->
     <script
       src="https://unpkg.com/decap-cms@^3.8.4/dist/decap-cms.js"
       is:inline></script>
-
-    <script is:inline>
-      // Nach der Einladung per E-Mail landet man auf /#invite_token=… –
-      // von dort direkt ins Admin-Panel weiterleiten.
-      if (window.netlifyIdentity) {
-        window.netlifyIdentity.on('init', (user) => {
-          if (!user) {
-            window.netlifyIdentity.on('login', () => {
-              document.location.href = '/admin/';
-            });
-          }
-        });
-      }
-    </script>
   </body>
 </html>
