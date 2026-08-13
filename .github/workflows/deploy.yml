@@ -94,8 +94,8 @@ jobs:
       - name: Per FTP hochladen
         uses: SamKirkland/FTP-Deploy-Action@v4.4.0
         with:
-          server: ${{ secrets.FTPSERVER }}
-          username: ${{ secrets.FTPUSER }}
+          server: ${{ vars.FTPSERVER }}
+          username: ${{ vars.FTPUSER }}
           password: ${{ secrets.FTPPASSWORD }}
           local-dir: ./dist/
           server-dir: /public_html/
