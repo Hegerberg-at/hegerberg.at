@@ -2,6 +2,5 @@
 tag: Dienstag
 reihenfolge: 2
 geschlossen: true
-hinweis: Ruhetag
+hinweis: Aktuelle Öffnungzeiten beim Wirt Peter Hurschka 06801287645 erfragen
 ---
-
