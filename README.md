@@ -8,7 +8,7 @@ Statisch generiert mit [Astro](https://astro.build), redaktionell gepflegt über
 
 ```bash
 bun install
-bun run dev          # → http://localhost:4321
+bun run dev          # → https://hegerberg.at
 ```
 
 Für das CMS zusätzlich in einem **zweiten Terminal**:
@@ -17,7 +17,9 @@ Für das CMS zusätzlich in einem **zweiten Terminal**:
 bun run cms          # decap-server auf Port 8081
 ```
 
-Danach ist das Redaktionssystem unter <http://localhost:4321/admin/> erreichbar.
+
+
+Danach ist das Redaktionssystem unter <https://hegerberg.at/admin/> erreichbar.
 Durch `local_backend: true` in `public/admin/config.yml` schreibt Decap dabei
 direkt in die Markdown-Dateien im Repository – **ohne Git-Login**.
 
@@ -95,29 +97,24 @@ Das Hero-Bild ist derzeit ein generiertes SVG-Panorama
 
 ## Deployment
 
-### Netlify (empfohlen, weil Git Gateway integriert)
+Das Projekt wird bei **Hostinger** gehostet und nutzt **GitHub** als CMS-Backend.
 
-1. Repository verbinden – `netlify.toml` liefert Build-Command und Publish-Verzeichnis.
-2. **Site configuration → Identity** aktivieren.
-3. Registration auf **Invite only** stellen.
-4. **Services → Git Gateway** aktivieren.
-5. Redakteur:innen über **Invite users** einladen.
+### OAuth-Authentifizierung
 
-Danach ist `/admin/` mit dem Netlify-Identity-Login nutzbar.
+Für die Authentifizierung über GitHub ist ein PHP-Script erforderlich:
 
-### Cloudflare Pages
+- **Speicherort:** `public/oauth/`
+- **Aufgabe:** Verarbeitet den OAuth-Flow zwischen Decap CMS und GitHub
 
-Build-Command `bun run build`, Output-Verzeichnis `dist`. `public/_headers` wird
-automatisch übernommen. Da Cloudflare kein Git Gateway anbietet, muss das
-Backend in `public/admin/config.yml` auf GitHub OAuth umgestellt werden:
+### GitHub-Konfiguration
 
-```yaml
-backend:
-  name: github
-  repo: <organisation>/<repository>
-  branch: main
-  base_url: https://<eigener-oauth-proxy>
+In den **GitHub App-Settings** muss folgende Redirect-/Callback-URL hinterlegt
+werden:
+
 ```
+https://hegerberg.at/oauth
+```
+
 
 ## Datenschutz-Hinweise
 
