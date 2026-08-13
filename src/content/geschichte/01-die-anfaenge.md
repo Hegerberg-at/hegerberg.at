@@ -2,6 +2,7 @@
 titel: Die Anfänge am Berg
 jahr: "1928"
 beschreibung: Wie aus einer einfachen Schutzhütte für Waldarbeiter ein Ausflugsziel wurde.
+bild: /images/uploads/hegerberlogo2-1-.png
 reihenfolge: 10
 ---
 
