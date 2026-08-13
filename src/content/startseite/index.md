@@ -2,7 +2,7 @@
 hero:
   bild: /images/uploads/hegerberg-hero.jpg
   titel: Schutzhaus am Hegerberg
-  untertitel: Gastfreundschaft auf 716 Metern im Wienerwald
+  untertitel: Gastfreundschaft auf 655 Metern im Wienerwald
 willkommen:
   eyebrow: Willkommen
   titel: Einkehren, wo der Wienerwald am schönsten ist!

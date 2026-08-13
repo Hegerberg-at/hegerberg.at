@@ -13,24 +13,23 @@ export const site = {
   domain: 'https://hegerberg.at',
 
   adresse: {
-    strasse: 'Hochstraß 27', // PLATZHALTER
-    plz: '3073',
+    strasse: 'Hochstraß 27', 
     ort: 'Stössing',
     bezirk: 'St. Pölten Land',
     bundesland: 'Niederösterreich',
     land: 'Österreich',
   },
 
-  /** Für Karten-Embed und Geo-Metadaten (Gipfel Hegerberg, 716 m). */
+  /** Für Karten-Embed und Geo-Metadaten (Gipfel Hegerberg, 655 m). */
   geo: {
     lat: 48.13216189669226,
     lng: 15.779537411108286,
     seehoehe: 655,
   },
 
-  telefon: '+43 2744 12345', // PLATZHALTER
-  telefonAnzeige: '02744 / 12345', // PLATZHALTER
-  email: 'office@hegerberg.at', // PLATZHALTER
+  telefon: '+436801287645',
+  telefonAnzeige: '+43 680 1287645',
+  email: 'office@hegerberg.at', 
 
   /** Leerer String blendet den jeweiligen Link im Footer aus. */
   social: {
