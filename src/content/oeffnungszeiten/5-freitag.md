@@ -1,8 +1,8 @@
 ---
 tag: Freitag
 reihenfolge: 5
-geschlossen: false
-von: "11:00"
-bis: "22:00"
+geschlossen: true
+von: 11:00
+bis: 22:00
+hinweis: Aktuelle Öffnungzeiten beim Wirt Peter Hurschka 06801287645 erfragen
 ---
-
