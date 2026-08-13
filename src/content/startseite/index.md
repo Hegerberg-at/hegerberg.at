@@ -1,6 +1,6 @@
 ---
 hero:
-  bild: /images/hero.svg
+  bild: /images/uploads/pxl_20260802_135927724.jpg
   titel: Schutzhaus am Hegerberg
   untertitel: Gastfreundschaft auf 716 Metern im Wienerwald
 willkommen:
