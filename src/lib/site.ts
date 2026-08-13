@@ -13,7 +13,8 @@ export const site = {
   domain: 'https://hegerberg.at',
 
   adresse: {
-    strasse: 'Hochstraß 27', 
+    strasse: 'Hochstraß 27',
+    plz: '3073', 
     ort: 'Stössing',
     bezirk: 'St. Pölten Land',
     bundesland: 'Niederösterreich',
