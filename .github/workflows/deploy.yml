@@ -92,12 +92,11 @@ jobs:
 
       # Docker-Action – dadurch unabhängig von der Node-Version des Runners.
       - name: Per FTP hochladen
-        uses: GenieTim/ftp-action@v4.0.1
+        uses: dennisameling/ftp-upload-action@v2
         with:
-          host: ${{ secrets.FTPSERVER }}
-          user: ${{ secrets.FTPUSER }}
+          server: ${{ secrets.FTPSERVER }}
+          username: ${{ secrets.FTPUSER }}
           password: ${{ secrets.FTPPASSWORD }}
-          localDir: dist
-          remoteDir: public_html
-          # Ohne TLS gingen die FTP-Zugangsdaten im Klartext über die Leitung.
-          forceSsl: false
+          local_dir: dist/
+          server_dir: public_html/
+          secure: false
