@@ -1,12 +1,6 @@
 ---
 import { navigation, site } from '../lib/site';
 
-interface Props {
-  /** Über dem Hero: Header liegt transparent über dem Bild. */
-  transparent?: boolean;
-}
-
-const { transparent = false } = Astro.props;
 const pfad = Astro.url.pathname;
 
 const istAktiv = (href: string) =>
@@ -14,15 +8,10 @@ const istAktiv = (href: string) =>
 ---
 
 <header
-  data-transparent={transparent ? '' : null}
-  class:list={[
-    'group/header sticky top-0 z-40 transition-colors duration-300',
-    transparent
-      ? 'bg-holz-950/0 data-[scrolled]:bg-holz-950/95 data-[scrolled]:shadow-lg data-[scrolled]:backdrop-blur'
-      : 'bg-holz-950 shadow-lg',
-  ]}
+  class="group/header sticky top-0 z-40 transition-colors duration-300 bg-holz-950/95 shadow-lg backdrop-blur"
+
 >
-  <div class="container-page flex items-center justify-between gap-4 py-4">
+  <div class="mx-3 flex items-center justify-between gap-4 py-4">
     <a
       href="/"
       class="flex items-center gap-3 text-holz-50 transition hover:text-holz-200"
@@ -134,14 +123,6 @@ const istAktiv = (href: string) =>
 </header>
 
 <script>
-  const header = document.querySelector<HTMLElement>('header[data-transparent]');
-  if (header) {
-    const aktualisiere = () => {
-      header.toggleAttribute('data-scrolled', window.scrollY > 24);
-    };
-    aktualisiere();
-    window.addEventListener('scroll', aktualisiere, { passive: true });
-  }
 
   const toggle = document.querySelector<HTMLButtonElement>('[data-menu-toggle]');
   const menu = document.getElementById('mobile-menu');
