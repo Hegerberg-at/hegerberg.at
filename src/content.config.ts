@@ -145,6 +145,21 @@ const events = defineCollection({
     bild: z.string().optional(),
     bildAlt: z.string().optional(),
     abgesagt: z.boolean().default(false),
+    /**
+     * Zusätzliche Fotos, die nur auf der Detailseite der Veranstaltung
+     * erscheinen. Decap schreibt eine geleerte Liste als `null` – deshalb der
+     * Fallback auf ein leeres Array.
+     */
+    galerie: z.preprocess(
+      (wert) => wert ?? [],
+      z.array(
+        z.object({
+          bild: z.string(),
+          bildAlt: z.string().optional(),
+          beschreibung: z.string().optional(),
+        }),
+      ),
+    ),
   }),
 });
 
