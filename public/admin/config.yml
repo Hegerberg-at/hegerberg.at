@@ -1,15 +1,12 @@
 #
 # Lokale Entwicklung:
-#   Terminal 1:  bun run dev
-#   Terminal 2:  bun run cms
-#   Browser:     http://localhost:4321/admin/
+#   just                  startet Dev-Server und CMS-Proxy zusammen
+#   Browser:              http://localhost:4321/admin/
+# Alternativ von Hand: `bun run dev` und `bun run cms` in zwei Terminals.
 # Durch `local_backend: true` wird dabei direkt ins Dateisystem geschrieben –
 # ohne Git-Authentifizierung.
 
 backend:
-
-  local_backend: true
-
   name: github
   repo: stefanschlipfi/hegerberg.at
   # OAuth-Proxy auf derselben Domain (public/oauth/index.php). Nur der Login
@@ -26,7 +23,7 @@ backend:
     deleteMedia: 'CMS: Medium {{path}} gelöscht'
 
 # Lokales Backend für die Entwicklung (wird in Produktion ignoriert).
-local_backend: true
+local_backend: false
 
 locale: de
 site_url: https://hegerberg.at
