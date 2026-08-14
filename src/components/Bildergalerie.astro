@@ -1,0 +1,214 @@
+---
+/**
+ * Kleine Bildergalerie mit Großansicht (Lightbox).
+ *
+ * Anders als die Galerie-Seite kommt sie ohne Kategorie-Filter aus und kann
+ * mehrfach auf einer Seite verwendet werden – das Skript verarbeitet jede
+ * Instanz eigenständig.
+ */
+interface Bild {
+  bild: string;
+  bildAlt?: string;
+  beschreibung?: string;
+}
+
+interface Props {
+  bilder: Bild[];
+  /** Überschrift über dem Raster. Leer lassen, um sie auszublenden. */
+  titel?: string;
+}
+
+const { bilder, titel } = Astro.props;
+
+const eintraege = bilder.map((eintrag) => ({
+  bild: eintrag.bild,
+  alt: eintrag.bildAlt ?? '',
+  beschreibung: eintrag.beschreibung ?? '',
+}));
+---
+
+{
+  eintraege.length > 0 && (
+    <section data-bildergalerie>
+      {titel && (
+        <h2 class="text-2xl font-bold text-holz-950">{titel}</h2>
+      )}
+
+      <ul class="mt-6 grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3">
+        {eintraege.map((eintrag, index) => (
+          <li class="group">
+            <button
+              type="button"
+              data-galerie-oeffnen
+              data-index={index}
+              class="relative block h-full w-full overflow-hidden rounded-2xl bg-holz-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-wald-700"
+            >
+              <img
+                src={eintrag.bild}
+                alt={eintrag.alt}
+                loading="lazy"
+                decoding="async"
+                class="aspect-square w-full object-cover transition duration-500 group-hover:scale-105"
+              />
+              <span class="sr-only">Bild {index + 1} vergrößern</span>
+            </button>
+          </li>
+        ))}
+      </ul>
+
+      <script
+        type="application/json"
+        data-galerie-daten
+        set:html={JSON.stringify(eintraege)}
+        is:inline
+      />
+
+      <dialog
+        data-lightbox
+        class="max-h-none max-w-none bg-transparent p-0 backdrop:bg-holz-950/90 open:fixed open:inset-0 open:h-full open:w-full"
+        aria-label="Bildansicht"
+      >
+        <div class="flex h-full w-full flex-col">
+          <div class="flex items-center justify-between gap-4 p-4 text-holz-50">
+            <p class="text-sm tabular-nums text-holz-300" data-lightbox-zaehler />
+            <button
+              type="button"
+              data-lightbox-schliessen
+              class="grid size-11 place-items-center rounded-full bg-holz-50/10 transition hover:bg-holz-50/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-holz-50"
+            >
+              <span class="sr-only">Schließen</span>
+              <svg
+                class="size-6"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                aria-hidden="true"
+              >
+                <path d="M6 6l12 12M18 6L6 18" />
+              </svg>
+            </button>
+          </div>
+
+          <div class="relative flex min-h-0 flex-1 items-center justify-center px-4">
+            <button
+              type="button"
+              data-lightbox-zurueck
+              class="absolute left-4 z-10 grid size-12 place-items-center rounded-full bg-holz-50/10 text-holz-50 transition hover:bg-holz-50/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-holz-50"
+            >
+              <span class="sr-only">Vorheriges Bild</span>
+              <svg
+                class="size-6"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M15 5l-7 7 7 7" />
+              </svg>
+            </button>
+
+            <img
+              data-lightbox-bild
+              src=""
+              alt=""
+              class="max-h-full max-w-full rounded-xl object-contain shadow-2xl"
+            />
+
+            <button
+              type="button"
+              data-lightbox-vor
+              class="absolute right-4 z-10 grid size-12 place-items-center rounded-full bg-holz-50/10 text-holz-50 transition hover:bg-holz-50/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-holz-50"
+            >
+              <span class="sr-only">Nächstes Bild</span>
+              <svg
+                class="size-6"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          </div>
+
+          <div class="p-6 text-center text-holz-100">
+            <p class="mx-auto max-w-xl text-sm text-holz-300" data-lightbox-text />
+          </div>
+        </div>
+      </dialog>
+    </section>
+  )
+}
+
+<script>
+  type Eintrag = { bild: string; alt: string; beschreibung: string };
+
+  for (const galerie of document.querySelectorAll<HTMLElement>(
+    '[data-bildergalerie]',
+  )) {
+    const datenEl = galerie.querySelector<HTMLScriptElement>('[data-galerie-daten]');
+    const dialog = galerie.querySelector<HTMLDialogElement>('[data-lightbox]');
+    if (!datenEl || !dialog) continue;
+
+    const eintraege: Eintrag[] = JSON.parse(datenEl.textContent ?? '[]');
+    if (eintraege.length === 0) continue;
+
+    const bildEl = dialog.querySelector<HTMLImageElement>('[data-lightbox-bild]')!;
+    const textEl = dialog.querySelector<HTMLElement>('[data-lightbox-text]')!;
+    const zaehlerEl = dialog.querySelector<HTMLElement>('[data-lightbox-zaehler]')!;
+
+    let position = 0;
+
+    const zeige = (neu: number) => {
+      position = (neu + eintraege.length) % eintraege.length;
+      const eintrag = eintraege[position];
+      bildEl.src = eintrag.bild;
+      bildEl.alt = eintrag.alt;
+      textEl.textContent = eintrag.beschreibung;
+      zaehlerEl.textContent = `${position + 1} / ${eintraege.length}`;
+    };
+
+    for (const knopf of galerie.querySelectorAll<HTMLButtonElement>(
+      '[data-galerie-oeffnen]',
+    )) {
+      knopf.addEventListener('click', () => {
+        zeige(Number(knopf.dataset.index));
+        dialog.showModal();
+      });
+    }
+
+    dialog
+      .querySelector('[data-lightbox-schliessen]')
+      ?.addEventListener('click', () => dialog.close());
+    dialog
+      .querySelector('[data-lightbox-vor]')
+      ?.addEventListener('click', () => zeige(position + 1));
+    dialog
+      .querySelector('[data-lightbox-zurueck]')
+      ?.addEventListener('click', () => zeige(position - 1));
+
+    dialog.addEventListener('keydown', (event) => {
+      if (event.key === 'ArrowRight') {
+        event.preventDefault();
+        zeige(position + 1);
+      } else if (event.key === 'ArrowLeft') {
+        event.preventDefault();
+        zeige(position - 1);
+      }
+    });
+
+    // Klick auf den Hintergrund schließt.
+    dialog.addEventListener('click', (event) => {
+      if (event.target === dialog) dialog.close();
+    });
+  }
+</script>

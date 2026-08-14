@@ -166,6 +166,7 @@ const geschichte = (await getCollection('geschichte')).sort(
               bild={event.data.bild}
               bildAlt={event.data.bildAlt}
               abgesagt={event.data.abgesagt}
+              href={`/veranstaltungen/${event.id}/`}
             />
           ))}
         </div>

@@ -23,7 +23,7 @@ backend:
     deleteMedia: 'CMS: Medium {{path}} gelöscht'
 
 # Lokales Backend für die Entwicklung (wird in Produktion ignoriert).
-local_backend: true
+local_backend: false
 
 locale: de
 site_url: https://hegerberg.at
@@ -372,7 +372,7 @@ collections:
       - name: beschreibung
         label: Kurzbeschreibung
         widget: text
-        hint: Wird in der Vorschaukachel angezeigt.
+        hint: Wird in der Vorschaukachel und als Vorspann auf der Detailseite angezeigt.
       - name: bild
         label: Bild
         widget: image
@@ -390,3 +390,33 @@ collections:
         label: Weitere Details
         widget: markdown
         required: false
+        hint: Ausführlicher Text – erscheint nur auf der Detailseite der
+          Veranstaltung. Überschriften, Listen und Links sind möglich.
+      - name: galerie
+        label: Bildergalerie
+        label_singular: Foto
+        widget: list
+        required: false
+        collapsed: false
+        summary: '{{fields.bildAlt}}'
+        hint: Zusätzliche Fotos, die auf der Detailseite unter dem Text als
+          Galerie erscheinen.
+        fields:
+          - name: bild
+            label: Foto
+            widget: image
+            choose_url: false
+            media_library:
+              config:
+                max_file_size: 5000000
+            hint: Bitte vorher auf max. 2000 px Breite verkleinern.
+          - name: bildAlt
+            label: Bildbeschreibung (Alt-Text)
+            widget: string
+            required: false
+            hint: Kurze Beschreibung für Screenreader.
+          - name: beschreibung
+            label: Bildunterschrift
+            widget: text
+            required: false
+            hint: Erscheint in der Großansicht unter dem Foto.

@@ -1,8 +1,8 @@
 ---
 import { getCollection } from 'astro:content';
-import BaseLayout from '../layouts/BaseLayout.astro';
-import SectionHeading from '../components/SectionHeading.astro';
-import EventCard from '../components/EventCard.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import SectionHeading from '../../components/SectionHeading.astro';
+import EventCard from '../../components/EventCard.astro';
 
 const heute = new Date();
 heute.setHours(0, 0, 0, 0);
@@ -43,6 +43,7 @@ const vergangen = alle
               bild={event.data.bild}
               bildAlt={event.data.bildAlt}
               abgesagt={event.data.abgesagt}
+              href={`/veranstaltungen/${event.id}/`}
             />
           ))}
         </div>
@@ -60,21 +61,26 @@ const vergangen = alle
           <h2 class="text-2xl font-bold text-holz-950">Bereits gewesen</h2>
           <ul class="mt-6 divide-y divide-holz-200 border-y border-holz-200">
             {vergangen.map((event) => (
-              <li class="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 py-4">
-                <span class="font-semibold text-holz-800">
-                  {event.data.titel}
-                </span>
-                <time
-                  datetime={event.data.datum.toISOString().slice(0, 10)}
-                  class="text-sm tabular-nums text-holz-600"
+              <li>
+                <a
+                  href={`/veranstaltungen/${event.id}/`}
+                  class="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 py-4 transition hover:text-wald-800"
                 >
-                  {event.data.datum.toLocaleDateString('de-AT', {
-                    day: '2-digit',
-                    month: '2-digit',
-                    year: 'numeric',
-                    timeZone: 'Europe/Vienna',
-                  })}
-                </time>
+                  <span class="font-semibold text-holz-800">
+                    {event.data.titel}
+                  </span>
+                  <time
+                    datetime={event.data.datum.toISOString().slice(0, 10)}
+                    class="text-sm tabular-nums text-holz-600"
+                  >
+                    {event.data.datum.toLocaleDateString('de-AT', {
+                      day: '2-digit',
+                      month: '2-digit',
+                      year: 'numeric',
+                      timeZone: 'Europe/Vienna',
+                    })}
+                  </time>
+                </a>
               </li>
             ))}
           </ul>
