@@ -1,0 +1,151 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import SectionHeading from '../../components/SectionHeading.astro';
+import TourCard from '../../components/TourCard.astro';
+import { ladeTouren } from '../../lib/touren';
+import { formatDistanz } from '../../lib/gpx';
+
+const touren = await ladeTouren();
+
+const mtb = touren.filter((tour) => tour.eintrag.data.art === 'Mountainbike');
+const wandern = touren.filter((tour) => tour.eintrag.data.art === 'Wanderung');
+
+const gesamtKm = touren.reduce((summe, tour) => summe + tour.daten.distanzKm, 0);
+
+const filter = [
+  { wert: 'alle', label: 'Alle Touren', anzahl: touren.length },
+  { wert: 'Mountainbike', label: 'Mountainbike', anzahl: mtb.length },
+  { wert: 'Wanderung', label: 'Wandern', anzahl: wandern.length },
+].filter((eintrag) => eintrag.anzahl > 0);
+---
+
+<BaseLayout
+  title="Aktivitäten rund um den Hegerberg"
+  description="Mountainbike-Touren und Wanderungen rund um den Hegerberg bei Stössing – mit Höhenprofil, Karte und GPX-Datei zum Mitnehmen."
+>
+  <div class="container-page py-16 sm:py-20">
+    <SectionHeading
+      as="h1"
+      eyebrow="Unterwegs"
+      titel="Aktivitäten rund um den Hegerberg"
+      text="Der Hegerberg ist ein guter Ausgangspunkt: Forststraßen fürs Rad, ruhige Waldwege zum Gehen und am Ende die Terrasse. Alle Touren gibt es als GPX-Datei zum Mitnehmen aufs Navi oder Handy."
+    />
+
+    {
+      touren.length > 0 && (
+        <p class="mt-6 text-sm text-holz-600">
+          {touren.length}{' '}
+          {touren.length === 1 ? 'Tour' : 'Touren'} · zusammen{' '}
+          {formatDistanz(Math.round(gesamtKm * 10) / 10)} · Start meist direkt beim
+          Schutzhaus
+        </p>
+      )
+    }
+
+    {
+      touren.length > 0 ? (
+        <>
+          {filter.length > 2 && (
+            <div class="mt-8" data-touren-filter>
+              <h2 class="sr-only">Nach Art filtern</h2>
+              <div class="flex flex-wrap gap-2" role="group" aria-label="Art der Tour">
+                {filter.map((eintrag, index) => (
+                  <button
+                    type="button"
+                    data-filter={eintrag.wert}
+                    aria-pressed={index === 0 ? 'true' : 'false'}
+                    class="rounded-full border border-holz-300 px-4 py-2 text-sm font-semibold text-holz-800 transition hover:border-wald-600 hover:bg-wald-50 aria-pressed:border-wald-700 aria-pressed:bg-wald-700 aria-pressed:text-holz-50"
+                  >
+                    {eintrag.label}
+                    <span class="ml-1.5 tabular-nums opacity-70">{eintrag.anzahl}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div
+            class="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3"
+            data-touren
+          >
+            {touren.map((tour) => (
+              <div data-art={tour.eintrag.data.art} class="contents">
+                <TourCard
+                  href={tour.href}
+                  titel={tour.eintrag.data.titel}
+                  art={tour.eintrag.data.art}
+                  schwierigkeit={tour.eintrag.data.schwierigkeit}
+                  beschreibung={tour.eintrag.data.beschreibung}
+                  bild={tour.eintrag.data.bild}
+                  bildAlt={tour.eintrag.data.bildAlt}
+                  daten={tour.daten}
+                  dauerMinuten={tour.dauerMinuten}
+                />
+              </div>
+            ))}
+          </div>
+        </>
+      ) : (
+        <p class="mt-10 rounded-2xl border border-holz-200 bg-holz-100 p-8 text-holz-700">
+          Die Touren werden gerade zusammengestellt. Bald finden Sie hier
+          Mountainbike-Runden und Wanderungen mit GPX-Dateien zum Herunterladen.
+        </p>
+      )
+    }
+
+    <section class="mt-20 grid gap-6 lg:grid-cols-2">
+      <div class="card p-6 sm:p-8">
+        <h2 class="text-xl font-bold text-holz-950">GPX-Dateien verwenden</h2>
+        <p class="mt-3 text-sm leading-relaxed text-holz-700">
+          Jede Tour lässt sich als GPX-Datei herunterladen. Die Datei kann in
+          gängige Apps wie Komoot, Outdooractive, OsmAnd oder auf ein
+          Fahrrad-Navi importiert werden – dort erscheint die Strecke dann als
+          Route zum Nachfahren.
+        </p>
+      </div>
+
+      <div class="card p-6 sm:p-8">
+        <h2 class="text-xl font-bold text-holz-950">Bitte beachten</h2>
+        <ul class="mt-3 space-y-2 text-sm leading-relaxed text-holz-700">
+          <li>
+            Die Angaben sind Richtwerte und ersetzen keine Wanderkarte. Wetter
+            und Zustand der Wege bitte vorher prüfen.
+          </li>
+          <li>
+            Die Wege führen über Forststraßen und durch bewirtschafteten Wald –
+            Sperren und Beschilderung bitte beachten.
+          </li>
+          <li>
+            Vor dem Losgehen ein Blick auf die
+            <a
+              href="/oeffnungszeiten/"
+              class="font-semibold text-wald-700 underline underline-offset-2"
+              >Öffnungszeiten</a
+            >, damit die Einkehr am Ende auch klappt.
+          </li>
+        </ul>
+      </div>
+    </section>
+  </div>
+</BaseLayout>
+
+<script>
+  const filter = document.querySelector<HTMLElement>('[data-touren-filter]');
+  const raster = document.querySelector<HTMLElement>('[data-touren]');
+
+  filter?.addEventListener('click', (event) => {
+    const knopf = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-filter]');
+    if (!knopf || !raster) return;
+
+    const gewaehlt = knopf.dataset.filter;
+    for (const anderer of filter.querySelectorAll<HTMLButtonElement>('[data-filter]')) {
+      anderer.setAttribute('aria-pressed', String(anderer.dataset.filter === gewaehlt));
+    }
+
+    for (const eintrag of raster.querySelectorAll<HTMLElement>('[data-art]')) {
+      const passt = gewaehlt === 'alle' || eintrag.dataset.art === gewaehlt;
+      eintrag.classList.toggle('contents', passt);
+      eintrag.classList.toggle('hidden', !passt);
+    }
+  });
+</script>

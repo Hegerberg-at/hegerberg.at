@@ -1,0 +1,122 @@
+---
+import type { Tourdaten, Tourart } from '../lib/gpx';
+import { formatDauer, formatDistanz } from '../lib/gpx';
+import Tourstatistik from './Tourstatistik.astro';
+
+interface Props {
+  href: string;
+  titel: string;
+  art: Tourart;
+  schwierigkeit: 'leicht' | 'mittel' | 'schwer';
+  beschreibung: string;
+  bild?: string;
+  bildAlt?: string;
+  daten: Tourdaten;
+  dauerMinuten: number;
+}
+
+const {
+  href,
+  titel,
+  art,
+  schwierigkeit,
+  beschreibung,
+  bild,
+  bildAlt,
+  daten,
+  dauerMinuten,
+} = Astro.props;
+
+/**
+ * Umriss der Tour als Vorschau. Für die kleine Fläche genügt eine ebene
+ * Näherung: Längengrade werden mit dem Kosinus der Breite gestaucht.
+ */
+const [[sued, west], [nord, ost]] = daten.bounds;
+const stauchung = Math.cos(((sued + nord) / 2) * (Math.PI / 180));
+const spanneX = Math.max((ost - west) * stauchung, 1e-6);
+const spanneY = Math.max(nord - sued, 1e-6);
+const groesse = Math.max(spanneX, spanneY);
+const versatzX = (groesse - spanneX) / 2;
+const versatzY = (groesse - spanneY) / 2;
+
+const umriss = daten.linie
+  .map(([lat, lng], index) => {
+    const x = (((lng - west) * stauchung + versatzX) / groesse) * 100;
+    const y = 100 - (((lat - sued) + versatzY) / groesse) * 100;
+    return `${index === 0 ? 'M' : 'L'}${x.toFixed(2)},${y.toFixed(2)}`;
+  })
+  .join(' ');
+
+const schwierigkeitsStil = {
+  leicht: 'bg-wald-100 text-wald-800',
+  mittel: 'bg-holz-200 text-holz-900',
+  schwer: 'bg-holz-800 text-holz-50',
+}[schwierigkeit];
+---
+
+<article class="card group flex flex-col overflow-hidden transition hover:shadow-lg">
+  <a href={href} class="relative block aspect-[16/10] overflow-hidden bg-holz-100">
+    {
+      bild ? (
+        <img
+          src={bild}
+          alt={bildAlt ?? ''}
+          loading="lazy"
+          decoding="async"
+          class="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+        />
+      ) : (
+        <svg
+          viewBox="-6 -6 112 112"
+          class="h-full w-full bg-gradient-to-br from-wald-50 to-holz-100"
+          aria-hidden="true"
+        >
+          <path
+            d={umriss}
+            fill="none"
+            stroke="#ffffff"
+            stroke-width="6"
+            stroke-linejoin="round"
+            stroke-linecap="round"
+          />
+          <path
+            d={umriss}
+            fill="none"
+            stroke="#2e4f34"
+            stroke-width="2.5"
+            stroke-linejoin="round"
+            stroke-linecap="round"
+          />
+        </svg>
+      )
+    }
+
+    <span class="absolute left-3 top-3 flex flex-wrap gap-2">
+      <span
+        class="rounded-full bg-holz-950/85 px-3 py-1 text-xs font-semibold text-holz-50 backdrop-blur"
+      >
+        {art === 'Mountainbike' ? 'Mountainbike' : 'Wanderung'}
+      </span>
+      <span class:list={['rounded-full px-3 py-1 text-xs font-semibold', schwierigkeitsStil]}>
+        {schwierigkeit}
+      </span>
+    </span>
+  </a>
+
+  <div class="flex flex-1 flex-col p-6">
+    <h3 class="text-xl font-bold text-holz-950">
+      <a href={href} class="transition hover:text-wald-800">{titel}</a>
+    </h3>
+
+    <p class="mt-3 flex-1 text-sm leading-relaxed text-holz-700">{beschreibung}</p>
+
+    <Tourstatistik
+      class="mt-5 border-t border-holz-200 pt-4"
+      eintraege={[
+        { label: 'Länge', wert: formatDistanz(daten.distanzKm) },
+        { label: 'Aufstieg', wert: `${daten.aufstieg} hm` },
+        { label: 'Dauer', wert: formatDauer(dauerMinuten) },
+      ]}
+    />
+  </div>
+</article>

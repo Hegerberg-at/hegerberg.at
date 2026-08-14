@@ -7,6 +7,9 @@
 # ohne Git-Authentifizierung.
 
 backend:
+
+  local_backend: true
+
   name: github
   repo: stefanschlipfi/hegerberg.at
   # OAuth-Proxy auf derselben Domain (public/oauth/index.php). Nur der Login
@@ -388,5 +391,92 @@ collections:
         default: false
       - name: body
         label: Weitere Details
+        widget: markdown
+        required: false
+
+  # -------------------------------------------------------------------- Touren
+  - name: touren
+    label: Aktivitäten
+    label_singular: Tour
+    description: Mountainbike-Touren und Wanderungen rund um den Hegerberg.
+      Länge, Höhenmeter, Dauer und Höhenprofil werden automatisch aus der
+      hochgeladenen GPX-Datei berechnet.
+    folder: src/content/touren
+    create: true
+    delete: true
+    format: yaml-frontmatter
+    slug: '{{slug}}'
+    identifier_field: titel
+    summary: '{{art}} · {{titel}}'
+    sortable_fields: [art, reihenfolge, titel]
+    view_groups:
+      - label: Art
+        field: art
+    fields:
+      - { name: titel, label: Titel, widget: string }
+      - name: art
+        label: Art
+        widget: select
+        options: [Mountainbike, Wanderung]
+        default: Wanderung
+      - name: schwierigkeit
+        label: Schwierigkeit
+        widget: select
+        options: [leicht, mittel, schwer]
+        default: mittel
+      - name: beschreibung
+        label: Kurzbeschreibung
+        widget: text
+        hint: Wird in der Übersicht auf der Kachel angezeigt.
+      - name: gpx
+        label: GPX-Datei
+        widget: file
+        choose_url: false
+        media_folder: /public/gpx
+        public_folder: /gpx
+        media_library:
+          config:
+            max_file_size: 10000000
+        hint: Aus der Datei werden Karte, Höhenprofil, Länge, Höhenmeter und
+          Dauer berechnet. Die Datei muss auf .gpx enden.
+      - name: start
+        label: Ausgangspunkt
+        widget: string
+        required: false
+        hint: 'Ohne Angabe wird „Schutzhaus am Hegerberg“ angezeigt.'
+      - name: dauerMinuten
+        label: Dauer in Minuten (überschreibt die Berechnung)
+        widget: number
+        value_type: int
+        required: false
+        min: 1
+        hint: Nur ausfüllen, wenn die automatisch berechnete Zeit nicht passt.
+      - name: hinweis
+        label: Hinweis
+        widget: string
+        required: false
+        hint: 'z. B. „Im Winter nicht geräumt“ oder „Forststraße gesperrt“.'
+      - name: bild
+        label: Bild
+        widget: image
+        required: false
+        choose_url: false
+        hint: Ohne Bild wird auf der Kachel der Streckenverlauf gezeichnet.
+      - name: bildAlt
+        label: Bildbeschreibung (Alt-Text)
+        widget: string
+        required: false
+      - name: empfohlen
+        label: Empfohlene Tour
+        widget: boolean
+        default: false
+      - name: reihenfolge
+        label: Reihenfolge
+        widget: number
+        value_type: int
+        default: 100
+        hint: Kleinere Zahl = weiter vorne innerhalb der Art.
+      - name: body
+        label: Wegbeschreibung
         widget: markdown
         required: false
