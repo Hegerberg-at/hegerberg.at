@@ -164,7 +164,7 @@ if (!isset($_GET['code'])) {
 
     header('Location: https://github.com/login/oauth/authorize?' . http_build_query([
         'client_id' => $clientId,
-        'scope' => $scope,
+        'scope' => 'public_repo',
         'state' => $state,
     ]), true, 302);
     exit;
