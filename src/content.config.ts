@@ -180,6 +180,35 @@ const galerie = defineCollection({
   }),
 });
 
+const touren = defineCollection({
+  loader: glob({ base: './src/content/touren', pattern: '**/*.md' }),
+  schema: z.object({
+    titel: z.string(),
+    art: z.enum(['Mountainbike', 'Wanderung']),
+    schwierigkeit: z.enum(['leicht', 'mittel', 'schwer']).default('mittel'),
+    beschreibung: z.string(),
+    /**
+     * Öffentlicher Pfad der GPX-Datei, z.B. "/gpx/gipfelrunde.gpx".
+     * Distanz, Höhenmeter und Profil werden daraus beim Build berechnet.
+     */
+    gpx: z.string().regex(/^\/.+\.gpx$/i, 'Pfad muss mit / beginnen und auf .gpx enden'),
+    /** Ausgangspunkt – ohne Angabe das Schutzhaus. */
+    start: z.string().optional(),
+    /** Überschreibt die berechnete Gehzeit bzw. Fahrzeit (in Minuten). */
+    dauerMinuten: z.preprocess(
+      leerAlsUndefined,
+      z.coerce.number().int().positive().optional(),
+    ),
+    /** z.B. "Im Winter oft vereist" */
+    hinweis: z.string().optional(),
+    bild: z.string().optional(),
+    bildAlt: z.string().optional(),
+    /** Auf der Übersicht hervorgehoben. */
+    empfohlen: z.boolean().default(false),
+    reihenfolge: z.number().int().default(100),
+  }),
+});
+
 export const collections = {
   startseite,
   speisekarte,
@@ -187,4 +216,5 @@ export const collections = {
   geschichte,
   events,
   galerie,
+  touren,
 };

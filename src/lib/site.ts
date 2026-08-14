@@ -52,6 +52,7 @@ export const navigation = [
   // { href: '/speisekarte/', label: 'Speisekarte' }, // speisekarte derzeit nicht online
   { href: '/galerie/', label: 'Galerie' },
   { href: '/veranstaltungen/', label: 'Veranstaltungen' },
+  { href: '/aktivitaeten/', label: 'Aktivitäten' },
   { href: '/geschichte/', label: 'Geschichte' },
   { href: '/oeffnungszeiten/', label: 'Öffnungszeiten' },
   { href: '/kontakt/', label: 'Kontakt' },
