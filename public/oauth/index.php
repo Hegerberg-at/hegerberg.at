@@ -157,14 +157,14 @@ if (!isset($_GET['code'])) {
 
     // Nur erwartete Zeichen durchlassen, damit der Parameter nicht als
     // Einfallstor in die GitHub-URL dient.
-    $scope = (string) ($_GET['scope'] ?? 'repo');
+    $scope = (string) ($_GET['scope'] ?? 'public_repo');
     if ($scope === '' || preg_match('/[^a-z_:,]/', $scope) === 1) {
-        $scope = 'repo';
+        $scope = 'public_repo';
     }
 
     header('Location: https://github.com/login/oauth/authorize?' . http_build_query([
         'client_id' => $clientId,
-        'scope' => 'public_repo',
+        'scope' => $scope,
         'state' => $state,
     ]), true, 302);
     exit;
