@@ -1,6 +1,6 @@
 # hegerberg.at
 
-Website für das **Schutzhaus am Hegerberg** (Stössing, Bezirk St. Pölten Land).
+Website für das **Schutzhaus am Hegerberg** (Stössing, Bezirk St. Pölten Land)..
 Statisch generiert mit [Astro](https://astro.build), redaktionell gepflegt über
 [Decap CMS](https://decapcms.org). Package Manager und Runtime: **Bun**.
 
