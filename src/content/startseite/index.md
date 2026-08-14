@@ -5,7 +5,7 @@ hero:
   untertitel: Gastfreundschaft auf 655 Metern im Wienerwald
 willkommen:
   eyebrow: Willkommen
-  titel: Einkehren, wo der Wienerwald am schönsten ist.
+  titel: Einkehren, wo der Wienerwald am schönsten ist!
   text: Das Schutzhaus am Hegerberg bei Stössing – bodenständige Küche, kalte
     Getränke und ein Panoramablick über den Wienerwald. Ein Ziel für Wanderer,
     Radfahrer und Familien.
