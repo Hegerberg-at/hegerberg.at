@@ -214,12 +214,13 @@ try {
     $mail->CharSet = PHPMailer::CHARSET_UTF8;
     $mail->XMailer = 'hegerberg.at';
 
-    $mail->setFrom($konfig['absender'], $konfig['absender_name']);
+    $mail->setFrom(sprintf('Website Formular <%s>', $konfig['absender']), $konfig['absender_name']);
     $mail->addAddress($konfig['empfaenger']);
     // Antworten gehen direkt an die anfragende Person.
     $mail->addReplyTo($email, $vorname . ' ' . $nachname);
 
-    $mail->Subject = sprintf('Mitgliedschaft: %s %s', $vorname, $nachname);
+    $mail->Subject = sprintf('[Web-Anfrage] Mitgliedschaft: %s %s', $vorname, $nachname);
+    date_default_timezone_set('Europe/Vienna');
     $mail->Body = implode("\n", [
         'Neue Anfrage für eine Mitgliedschaft über hegerberg.at',
         '',
