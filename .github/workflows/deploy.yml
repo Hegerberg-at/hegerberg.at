@@ -104,7 +104,7 @@ jobs:
       - name: SMTP-Zugangsdaten erzeugen
         env:
           SMTP_USER: ${{ secrets.SMTP_USER }}
-          SMTP_FROM: ${{ secrets.SMTP_FROM }}
+          SMTP_FROM: ${{ vars.SMTP_FROM }}
           SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
           SMTP_HOST: ${{ vars.SMTP_HOST }}
           SMTP_PORT: ${{ vars.SMTP_PORT }}
