@@ -238,7 +238,7 @@ try {
     // Antworten gehen direkt an die anfragende Person.
     $mail->addReplyTo($email, $vorname . ' ' . $nachname);
 
-    $mail->Subject = sprintf('[Web-Anfrage] Mitgliedschaft: %s %s', $vorname, $nachname);
+    $mail->Subject = sprintf('Mitgliedschaft: %s %s', $vorname, $nachname);
     $mail->Body = implode("\n", [
         'Neue Anfrage für eine Mitgliedschaft über hegerberg.at',
         '',
@@ -246,7 +246,6 @@ try {
         'Nachname: ' . $nachname,
         'E-Mail:   ' . $email,
         '',
-        'Eingegangen: ' . date('d.m.Y H:i'),
     ]);
 
     $mail->send();
@@ -272,8 +271,7 @@ try {
         'Guten Tag ' . $vorname . ' ' . $nachname . ',',
         '',
         'vielen Dank für Ihr Interesse an einer Mitgliedschaft im Schutzhaus',
-        'am Hegerberg. Ihre Anfrage ist bei uns eingegangen – wir melden uns in',
-        'den nächsten Tagen mit allen weiteren Informationen bei Ihnen.',
+        'am Hegerberg. Ihre Anfrage ist bei uns eingegangen.',
         '',
         'Ihre Angaben:',
         'Vorname:  ' . $vorname,
