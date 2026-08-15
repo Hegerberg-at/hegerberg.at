@@ -1,0 +1,103 @@
+#
+# PHPMailer auf das Hostinger-Webhosting kopieren.
+#
+# Läuft ausschließlich von Hand (Actions → „PHPMailer hochladen“ → Run
+# workflow). PHPMailer ändert sich selten und gehört nicht ins Repository,
+# darum wird die Bibliothek getrennt vom Seiten-Deploy hochgeladen und bleibt
+# dort liegen: Der Deploy-Workflow überträgt nur dist/ und löscht auf dem
+# Server nichts.
+#
+# Ziel auf dem Server: <public_html>/vendor/ – also genau das Verzeichnis, das
+# public/api/mitgliedschaft.php über ../vendor/ einbindet.
+#
+# Nach jedem Lauf sollte das Kontaktformular einmal getestet werden.
+#
+# Zugangsdaten aus der GitHub-Environment „FTP“ (wie beim Deploy):
+#   FTPSERVER    FTP-Host aus hPanel (Variable)
+#   FTPUSER      FTP-Benutzer aus hPanel (Variable)
+#   FTPPASSWORD  FTP-Passwort (Secret)
+
+name: PHPMailer hochladen
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'PHPMailer-Version (Composer-Constraint)'
+        required: true
+        default: '^7.1'
+
+# Nicht gleichzeitig mit einem Deploy oder einem zweiten Lauf auf den FTP.
+concurrency:
+  group: phpmailer-upload
+  cancel-in-progress: false
+
+jobs:
+  upload:
+    name: PHPMailer installieren und hochladen
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: FTP
+
+    steps:
+      - name: PHP bereitstellen
+        uses: shivammathur/setup-php@v2
+        with:
+          # Muss zur PHP-Version des Webhostings passen, damit Composer keine
+          # Version auswählt, die auf dem Server nicht läuft.
+          php-version: '8.2'
+          tools: composer
+
+      - name: PHPMailer installieren
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          mkdir -p build
+          cd build
+
+          # Eigenes, leeres Projekt: so landet ausschließlich PHPMailer samt
+          # Autoloader in vendor/ – ohne die Dev-Abhängigkeiten der Bibliothek.
+          composer init --quiet --no-interaction --name=hegerberg/mailer --type=project
+          composer require "phpmailer/phpmailer:${VERSION}" \
+            --no-interaction --update-no-dev --optimize-autoloader --prefer-dist
+
+          composer show phpmailer/phpmailer | head -5
+
+      - name: Installation prüfen
+        run: |
+          set -euo pipefail
+          cd build
+
+          test -f vendor/autoload.php
+          test -f vendor/phpmailer/phpmailer/src/PHPMailer.php
+
+          # Lädt die Klasse wirklich und gibt die installierte Version aus.
+          php -r 'require "vendor/autoload.php";
+                  echo "PHPMailer ", PHPMailer\PHPMailer\PHPMailer::VERSION, PHP_EOL;
+                  new PHPMailer\PHPMailer\PHPMailer(true);'
+
+          # Direkter Aufruf über den Browser soll nichts ausliefern. Greift auf
+          # Apache/LiteSpeed; ist der Server anders konfiguriert, schadet die
+          # Datei nicht.
+          printf 'Deny from all\n' > vendor/.htaccess
+
+          du -sh vendor
+
+      - name: Per FTP hochladen
+        uses: SamKirkland/FTP-Deploy-Action@v4.4.0
+        with:
+          server: ${{ vars.FTPSERVER }}
+          username: ${{ vars.FTPUSER }}
+          password: ${{ secrets.FTPPASSWORD }}
+          local-dir: ./build/vendor/
+          server-dir: /domains/hegerberg.at/public_html/vendor/
+          # Eigener Sync-Status, damit sich Deploy und dieser Workflow nicht
+          # gegenseitig die Dateiliste überschreiben.
+          state-name: .ftp-deploy-phpmailer-state.json
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/tests/**
+            **/test/**
+            **/examples/**

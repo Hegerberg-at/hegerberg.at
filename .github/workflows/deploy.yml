@@ -16,6 +16,17 @@
 #   FTPPASSWORD           FTP-Passwort
 #   OAUTH_CLIENT_ID       Client-ID der GitHub-OAuth-App
 #   OAUTH_CLIENT_SECRET   Client-Secret der GitHub-OAuth-App
+#   SMTP_USER             Postfach für den Formularversand, z. B.
+#                         no-reply@hegerberg.at (ist zugleich der Absender)
+#   SMTP_PASSWORD         Passwort dieses Postfachs
+#
+# Optionale Environment-Variablen (Voreinstellung in Klammern):
+#   SMTP_HOST    (smtp.hostinger.com)
+#   SMTP_PORT    (465)
+#   SMTP_SECURE  (ssl – für Port 587 auf tls stellen)
+#
+# PHPMailer selbst wird nicht hier hochgeladen, sondern einmalig über den
+# manuellen Workflow .github/workflows/phpmailer.yml.
 #
 # Wichtig: Environment-Secrets sind nur sichtbar, wenn der Job die Environment
 # unten über `environment:` anfordert – sonst sind sie schlicht leer.
@@ -90,6 +101,54 @@ jobs:
           # verloren; die Upload-Action kennt keine Ausschlussliste.
           rm -f dist/oauth/config.example.php
 
+      - name: SMTP-Zugangsdaten erzeugen
+        env:
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          SMTP_HOST: ${{ vars.SMTP_HOST }}
+          SMTP_PORT: ${{ vars.SMTP_PORT }}
+          SMTP_SECURE: ${{ vars.SMTP_SECURE }}
+        run: |
+          set -euo pipefail
+          : "${SMTP_USER:?Secret SMTP_USER fehlt in der Environment FTP}"
+          : "${SMTP_PASSWORD:?Secret SMTP_PASSWORD fehlt in der Environment FTP}"
+
+          # Ohne gesetzte Variablen die Hostinger-Standardwerte.
+          host=${SMTP_HOST:-smtp.hostinger.com}
+          port=${SMTP_PORT:-465}
+          secure=${SMTP_SECURE:-ssl}
+
+          # Für einfach gequotete PHP-Strings müssen nur \ und ' maskiert
+          # werden. Die Werte werden dabei nie ausgegeben.
+          maskieren() { local w=${1//\\/\\\\}; printf '%s' "${w//\'/\\\'}"; }
+          benutzer=$(maskieren "$SMTP_USER")
+          passwort=$(maskieren "$SMTP_PASSWORD")
+          host=$(maskieren "$host")
+
+          cat > dist/api/config.php <<EOF
+          <?php
+          // Wird bei jedem Deploy aus den GitHub-Secrets erzeugt – nicht von
+          // Hand bearbeiten.
+          return [
+              'host' => '${host}',
+              'port' => ${port},
+              'verschluesselung' => '${secure}',
+              'benutzer' => '${benutzer}',
+              'passwort' => '${passwort}',
+              'absender' => '${benutzer}',
+              'absender_name' => 'Schutzhaus am Hegerberg',
+              'empfaenger' => 'office@hegerberg.at',
+          ];
+          EOF
+
+          if command -v php >/dev/null; then
+            php -l dist/api/config.php
+          else
+            echo "PHP auf dem Runner nicht verfügbar – Syntaxprüfung übersprungen."
+          fi
+
+          rm -f dist/api/config.example.php
+
       # Docker-Action – dadurch unabhängig von der Node-Version des Runners.
       - name: Per FTP hochladen
         uses: SamKirkland/FTP-Deploy-Action@v4.4.0
@@ -107,3 +166,6 @@ jobs:
             **/.git*/**
             **/node_modules/**
             oauth/config.example.php
+            api/config.example.php
+            # PHPMailer kommt aus dem Workflow „PHPMailer hochladen“.
+            vendor/**
