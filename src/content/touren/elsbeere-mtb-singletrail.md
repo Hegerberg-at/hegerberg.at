@@ -5,7 +5,7 @@ schwierigkeit: mittel
 beschreibung: Elsbeere Singletrail
 gpx: /gpx/elsbeere-singletrail.gpx
 start: Michelbach
-bild: /images/uploads/elsbeere-singletrail.jpg
+bild: /images/uploads/1000041559.jpg
 empfohlen: false
 reihenfolge: 10
 ---
