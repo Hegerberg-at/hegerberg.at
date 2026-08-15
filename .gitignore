@@ -25,3 +25,9 @@ pnpm-debug.log*
 
 # OAuth-Zugangsdaten (wird von Hand per FTP hochgeladen)
 public/oauth/config.php
+
+# SMTP-Zugangsdaten des Kontaktformulars (wird beim Deploy erzeugt)
+public/api/config.php
+
+# PHPMailer – liegt nur auf dem Server, siehe .github/workflows/phpmailer.yml
+public/vendor/
