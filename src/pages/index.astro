@@ -5,6 +5,7 @@ import Hero from '../components/Hero.astro';
 import OeffnungszeitenWidget from '../components/OeffnungszeitenWidget.astro';
 import SectionHeading from '../components/SectionHeading.astro';
 import EventCard from '../components/EventCard.astro';
+import BecomeMembership from '../components/BecomeMembership.astro';
 import { site, adresseEinzeilig } from '../lib/site';
 import { formatPreis } from '../lib/format';
 
@@ -179,20 +180,10 @@ const geschichte = (await getCollection('geschichte')).sort(
     )
   }
 
-  <!-- Anfahrt-CTA -->
+  <!-- Mitgliedschaft -->
   <section class="container-page mt-24">
-    <div
-      class="card flex flex-col items-start gap-6 bg-holz-100 p-8 sm:flex-row sm:items-center sm:justify-between sm:p-12"
-    >
-      <div>
-        <h2 class="text-2xl font-bold text-holz-950 sm:text-3xl">
-          {cta.titel}
-        </h2>
-        <p class="mt-3 text-holz-700">
-          {adresseEinzeilig} · Reservierungen unter {site.telefonAnzeige}
-        </p>
-      </div>
-      <a href="/kontakt/" class="btn-primary shrink-0">Anfahrt &amp; Kontakt</a>
+    <div class="max-w-3xl flex mx-auto">
+      <BecomeMembership />
     </div>
   </section>
 </BaseLayout>

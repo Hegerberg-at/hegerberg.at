@@ -1,19 +1,19 @@
 ---
-import BaseLayout from '../layouts/BaseLayout.astro';
-import SectionHeading from '../components/SectionHeading.astro';
-import BecomeMembership from '../components/BecomeMembership.astro';
-import { site, adresseEinzeilig } from '../lib/site';
+import BaseLayout from "../layouts/BaseLayout.astro";
+import SectionHeading from "../components/SectionHeading.astro";
+import BecomeMembership from "../components/BecomeMembership.astro";
+import { site, adresseEinzeilig } from "../lib/site";
 
 const { lat, lng } = site.geo;
 const spanne = 0.02;
 const bbox = [lng - spanne, lat - spanne / 2, lng + spanne, lat + spanne / 2]
   .map((wert) => wert.toFixed(5))
-  .join(',');
+  .join(",");
 
 const osmEmbed = `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat},${lng}`;
 const osmLink = `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}#map=15/${lat}/${lng}`;
 const routeLink = `https://www.openstreetmap.org/directions?to=${lat}%2C${lng}`;
-const telefonLink = `tel:${site.telefon.replace(/\s/g, '')}`;
+const telefonLink = `tel:${site.telefon.replace(/\s/g, "")}`;
 ---
 
 <BaseLayout
@@ -31,7 +31,9 @@ const telefonLink = `tel:${site.telefon.replace(/\s/g, '')}`;
     <div class="mt-12 grid gap-10 lg:grid-cols-[minmax(0,24rem)_1fr]">
       <div class="space-y-6">
         <div class="card p-6 sm:p-8">
-          <h2 class="text-xl font-bold text-holz-950">Schutzhaus am Hegerberg</h2>
+          <h2 class="text-xl font-bold text-holz-950">
+            Schutzhaus am Hegerberg
+          </h2>
           <address class="mt-4 space-y-4 text-base not-italic leading-relaxed">
             <p class="text-holz-700">
               {site.adresse.strasse}<br />
@@ -39,7 +41,8 @@ const telefonLink = `tel:${site.telefon.replace(/\s/g, '')}`;
               {site.adresse.bundesland}, {site.adresse.land}
             </p>
             <p>
-              <span class="block text-xs uppercase tracking-[0.15em] text-holz-500"
+              <span
+                class="block text-xs uppercase tracking-[0.15em] text-holz-500"
                 >Telefon</span
               >
               <a
@@ -49,7 +52,8 @@ const telefonLink = `tel:${site.telefon.replace(/\s/g, '')}`;
               >
             </p>
             <p>
-              <span class="block text-xs uppercase tracking-[0.15em] text-holz-500"
+              <span
+                class="block text-xs uppercase tracking-[0.15em] text-holz-500"
                 >E-Mail</span
               >
               <a
@@ -106,8 +110,6 @@ const telefonLink = `tel:${site.telefon.replace(/\s/g, '')}`;
             </div>
           </dl>
         </div>
-
-        <BecomeMembership />
       </div>
 
       <div class="space-y-6">
@@ -149,36 +151,53 @@ const telefonLink = `tel:${site.telefon.replace(/\s/g, '')}`;
         <div class="card p-6 sm:p-8">
           <h2 class="text-xl font-bold text-holz-950">Gut zu wissen</h2>
           <ul class="mt-4 grid gap-3 text-sm text-holz-700 sm:grid-cols-2">
-            <li class="flex gap-2"><span aria-hidden="true">·</span> Terrasse mit Panoramablick</li>
-            <li class="flex gap-2"><span aria-hidden="true">·</span> Hunde an der Leine willkommen</li>
-            <li class="flex gap-2"><span aria-hidden="true">·</span> Spielplatz für Kinder</li>
-            <li class="flex gap-2"><span aria-hidden="true">·</span> Barrierefreier Zugang zum Gastraum</li>
-            <li class="flex gap-2"><span aria-hidden="true">·</span> Kartenzahlung möglich</li>
-            <li class="flex gap-2"><span aria-hidden="true">·</span> Gruppen ab 10 Personen bitte anmelden</li>
+            <li class="flex gap-2">
+              <span aria-hidden="true">·</span> Terrasse mit Panoramablick
+            </li>
+            <li class="flex gap-2">
+              <span aria-hidden="true">·</span> Hunde an der Leine willkommen
+            </li>
+            <li class="flex gap-2">
+              <span aria-hidden="true">·</span> Spielplatz für Kinder
+            </li>
+            <li class="flex gap-2">
+              <span aria-hidden="true">·</span> Barrierefreier Zugang zum Gastraum
+            </li>
+            <li class="flex gap-2">
+              <span aria-hidden="true">·</span> Kartenzahlung möglich
+            </li>
+            <li class="flex gap-2">
+              <span aria-hidden="true">·</span> Gruppen ab 10 Personen bitte anmelden
+            </li>
           </ul>
         </div>
+
+        <BecomeMembership />
       </div>
     </div>
   </div>
 </BaseLayout>
 
 <script>
-  for (const behaelter of document.querySelectorAll<HTMLElement>('[data-karte]')) {
-    const knopf = behaelter.querySelector<HTMLButtonElement>('[data-karte-laden]');
+  for (const behaelter of document.querySelectorAll<HTMLElement>(
+    "[data-karte]",
+  )) {
+    const knopf =
+      behaelter.querySelector<HTMLButtonElement>("[data-karte-laden]");
     const platzhalter = behaelter.querySelector<HTMLElement>(
-      '[data-karte-platzhalter]',
+      "[data-karte-platzhalter]",
     );
 
-    knopf?.addEventListener('click', () => {
+    knopf?.addEventListener("click", () => {
       const src = behaelter.dataset.src;
       if (!src || !platzhalter) return;
 
-      const iframe = document.createElement('iframe');
+      const iframe = document.createElement("iframe");
       iframe.src = src;
-      iframe.title = behaelter.dataset.titel ?? 'Karte';
-      iframe.loading = 'lazy';
-      iframe.referrerPolicy = 'no-referrer';
-      iframe.className = 'aspect-[4/3] w-full border-0 lg:aspect-[16/10]';
+      iframe.title = behaelter.dataset.titel ?? "Karte";
+      iframe.loading = "lazy";
+      iframe.referrerPolicy = "no-referrer";
+      iframe.className = "aspect-[4/3] w-full border-0 lg:aspect-[16/10]";
       platzhalter.replaceWith(iframe);
     });
   }
