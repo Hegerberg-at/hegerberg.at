@@ -220,7 +220,6 @@ try {
     $mail->addReplyTo($email, $vorname . ' ' . $nachname);
 
     $mail->Subject = sprintf('[Web-Anfrage] Mitgliedschaft: %s %s', $vorname, $nachname);
-    date_default_timezone_set('Europe/Vienna');
     $mail->Body = implode("\n", [
         'Neue Anfrage für eine Mitgliedschaft über hegerberg.at',
         '',
