@@ -2,7 +2,8 @@
 
 /**
  * Nimmt die Mitgliedschafts-Anfrage aus dem BecomeMembership-Formular entgegen
- * und versendet sie per E-Mail.
+ * und verschickt zwei E-Mails: die Anfrage an das Schutzhaus und eine
+ * Bestätigung an die im Formular angegebene Adresse.
  *
  * Der Versand läuft über PHPMailer mit SMTP-Anmeldung am Postfach
  * no-reply@hegerberg.at. Der Umweg ist nötig, weil Hostinger bei mail() den
@@ -177,6 +178,39 @@ function phpMailerLaden(): void
     }
 }
 
+/**
+ * Erzeugt den fertig konfigurierten Mailer.
+ *
+ * Die Verbindung bleibt offen (SMTPKeepAlive), damit Anfrage und Bestätigung
+ * über dieselbe Anmeldung laufen – am Ende schließt smtpClose() sie.
+ *
+ * @param array{host:string,port:int,verschluesselung:string,benutzer:string,passwort:string,absender:string,absender_name:string,empfaenger:string} $konfig
+ */
+function mailerErzeugen(array $konfig): PHPMailer
+{
+    $mail = new PHPMailer(true);
+
+    $mail->isSMTP();
+    $mail->Host = $konfig['host'];
+    $mail->Port = $konfig['port'];
+    $mail->SMTPAuth = true;
+    $mail->Username = $konfig['benutzer'];
+    $mail->Password = $konfig['passwort'];
+    // 'keine' ist nur für lokale Tests gedacht; im Livebetrieb 'ssl' oder 'tls'.
+    $mail->SMTPSecure = match ($konfig['verschluesselung']) {
+        'tls' => PHPMailer::ENCRYPTION_STARTTLS,
+        'keine' => '',
+        default => PHPMailer::ENCRYPTION_SMTPS,
+    };
+    $mail->SMTPAutoTLS = $konfig['verschluesselung'] !== 'keine';
+    $mail->SMTPKeepAlive = true;
+    $mail->Timeout = 20;
+    $mail->CharSet = PHPMailer::CHARSET_UTF8;
+    $mail->XMailer = 'hegerberg.at';
+
+    return $mail;
+}
+
 if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
     header('Allow: POST');
     antworten(405, 'fehler', 'Nur POST-Anfragen werden verarbeitet.');
@@ -194,26 +228,11 @@ $email = emailFeld();
 $konfig = konfiguration();
 phpMailerLaden();
 
-$mail = new PHPMailer(true);
+$mail = mailerErzeugen($konfig);
 
+// 1. Anfrage an das Schutzhaus. Schlägt sie fehl, ist die Anfrage verloren –
+//    also mit Fehler antworten.
 try {
-    $mail->isSMTP();
-    $mail->Host = $konfig['host'];
-    $mail->Port = $konfig['port'];
-    $mail->SMTPAuth = true;
-    $mail->Username = $konfig['benutzer'];
-    $mail->Password = $konfig['passwort'];
-    // 'keine' ist nur für lokale Tests gedacht; im Livebetrieb 'ssl' oder 'tls'.
-    $mail->SMTPSecure = match ($konfig['verschluesselung']) {
-        'tls' => PHPMailer::ENCRYPTION_STARTTLS,
-        'keine' => '',
-        default => PHPMailer::ENCRYPTION_SMTPS,
-    };
-    $mail->SMTPAutoTLS = $konfig['verschluesselung'] !== 'keine';
-    $mail->Timeout = 20;
-    $mail->CharSet = PHPMailer::CHARSET_UTF8;
-    $mail->XMailer = 'hegerberg.at';
-
     $mail->setFrom($konfig['absender'], $konfig['absender_name']);
     $mail->addAddress($konfig['empfaenger']);
     // Antworten gehen direkt an die anfragende Person.
@@ -235,4 +254,49 @@ try {
     abbrechen('Versand fehlgeschlagen: ' . $mail->ErrorInfo);
 }
 
-antworten(200, 'ok', 'Danke! Ihre Anfrage ist bei uns eingegangen.');
+// 2. Bestätigung an die anfragende Person. Die Anfrage liegt zu diesem
+//    Zeitpunkt bereits im Postfach des Schutzhauses – ein Fehler hier wird
+//    darum nur protokolliert und ändert die Antwort ans Formular nicht.
+$bestaetigt = false;
+
+try {
+    $mail->clearAllRecipients();
+    $mail->clearReplyTos();
+
+    $mail->addAddress($email, $vorname . ' ' . $nachname);
+    // Antworten auf die Bestätigung sollen im Postfach des Schutzhauses landen.
+    $mail->addReplyTo($konfig['empfaenger'], $konfig['absender_name']);
+
+    $mail->Subject = 'Ihre Anfrage für eine Mitgliedschaft';
+    $mail->Body = implode("\n", [
+        'Guten Tag ' . $vorname . ' ' . $nachname . ',',
+        '',
+        'vielen Dank für Ihr Interesse an einer Mitgliedschaft im Schutzhaus',
+        'am Hegerberg. Ihre Anfrage ist bei uns eingegangen – wir melden uns in',
+        'den nächsten Tagen mit allen weiteren Informationen bei Ihnen.',
+        '',
+        'Ihre Angaben:',
+        'Vorname:  ' . $vorname,
+        'Nachname: ' . $nachname,
+        'E-Mail:   ' . $email,
+        '',
+        'Sollten die Angaben nicht stimmen oder haben Sie Fragen, antworten Sie',
+        'einfach auf diese E-Mail (' . $konfig['empfaenger'] . ').',
+        '',
+        'Freundliche Grüße',
+        $konfig['absender_name'],
+        'https://hegerberg.at',
+    ]);
+
+    $mail->send();
+    $bestaetigt = true;
+} catch (PHPMailerException $fehler) {
+    error_log('Mitgliedschaft: Bestätigung an ' . $email . ' fehlgeschlagen: ' . $mail->ErrorInfo);
+}
+
+$mail->smtpClose();
+
+// Die Bestätigung nur ankündigen, wenn sie auch rausgegangen ist.
+antworten(200, 'ok', $bestaetigt
+    ? 'Danke! Ihre Anfrage ist bei uns eingegangen. Sie erhalten gleich eine Bestätigung per E-Mail.'
+    : 'Danke! Ihre Anfrage ist bei uns eingegangen.');
