@@ -104,6 +104,7 @@ jobs:
       - name: SMTP-Zugangsdaten erzeugen
         env:
           SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_FROM: ${{ secrets.SMTP_FROM }}
           SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
           SMTP_HOST: ${{ vars.SMTP_HOST }}
           SMTP_PORT: ${{ vars.SMTP_PORT }}
@@ -122,6 +123,7 @@ jobs:
           # werden. Die Werte werden dabei nie ausgegeben.
           maskieren() { local w=${1//\\/\\\\}; printf '%s' "${w//\'/\\\'}"; }
           benutzer=$(maskieren "$SMTP_USER")
+          absender=$(maskieren "$SMTP_FROM")
           passwort=$(maskieren "$SMTP_PASSWORD")
           host=$(maskieren "$host")
 
@@ -135,7 +137,7 @@ jobs:
               'verschluesselung' => '${secure}',
               'benutzer' => '${benutzer}',
               'passwort' => '${passwort}',
-              'absender' => '${benutzer}',
+              'absender' => '${absender}',
               'absender_name' => 'Schutzhaus am Hegerberg',
               'empfaenger' => 'office@hegerberg.at',
           ];
