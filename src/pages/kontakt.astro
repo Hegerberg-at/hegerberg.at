@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import SectionHeading from '../components/SectionHeading.astro';
+import BecomeMembership from '../components/BecomeMembership.astro';
 import { site, adresseEinzeilig } from '../lib/site';
 
 const { lat, lng } = site.geo;
@@ -105,6 +106,8 @@ const telefonLink = `tel:${site.telefon.replace(/\s/g, '')}`;
             </div>
           </dl>
         </div>
+
+        <BecomeMembership />
       </div>
 
       <div class="space-y-6">
