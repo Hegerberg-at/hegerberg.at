@@ -5,6 +5,10 @@ import Hero from '../components/Hero.astro';
 import OeffnungszeitenWidget from '../components/OeffnungszeitenWidget.astro';
 import SectionHeading from '../components/SectionHeading.astro';
 import EventCard from '../components/EventCard.astro';
+
+import TourCard from '../components/TourCard.astro';
+import { ladeTouren } from '../lib/touren';
+
 import BecomeMembership from '../components/BecomeMembership.astro';
 import { site, adresseEinzeilig } from '../lib/site';
 import { formatPreis } from '../lib/format';
@@ -24,6 +28,8 @@ const events = (await getCollection('events'))
   .filter((event) => (event.data.datumBis ?? event.data.datum) >= heute)
   .sort((a, b) => a.data.datum.getTime() - b.data.datum.getTime())
   .slice(0, 3);
+
+const touren = await ladeTouren();
 
 const spezialitaeten = (await getCollection('speisekarte'))
   .filter((speise) => speise.data.hausspezialitaet && speise.data.verfuegbar)
@@ -179,6 +185,43 @@ const geschichte = (await getCollection('geschichte')).sort(
       </section>
     )
   }
+
+<!-- Aktivitäten -->
+  {
+    events.length > 0 && (
+      <section class="container-page mt-24">
+        <SectionHeading
+          eyebrow="Unterwegs"
+          titel="Aktivitäten rund um den Hegerberg"
+          text="Von Forststraßen fürs Rad über ruhige Waldwege zum Wandern. Alle Touren gibt es als GPX-Datei zum Mitnehmen aufs Navi oder Handy."
+          zentriert
+        />
+        <div class="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {touren.map((tour) => (
+              <div data-art={tour.eintrag.data.art} class="contents">
+                <TourCard
+                  href={tour.href}
+                  titel={tour.eintrag.data.titel}
+                  art={tour.eintrag.data.art}
+                  schwierigkeit={tour.eintrag.data.schwierigkeit}
+                  beschreibung={tour.eintrag.data.beschreibung}
+                  bild={tour.eintrag.data.bild}
+                  bildAlt={tour.eintrag.data.bildAlt}
+                  daten={tour.daten}
+                  dauerMinuten={tour.dauerMinuten}
+                />
+              </div>
+            ))}
+        </div>
+        <div class="mt-10 text-center">
+          <a href="/aktivitaeten/" class="btn-outline">
+            Alle Aktivitäten
+          </a>
+        </div>
+      </section>
+    )
+  }
+
 
   <!-- Mitgliedschaft -->
   <section class="container-page mt-24">
