@@ -214,7 +214,7 @@ try {
     $mail->CharSet = PHPMailer::CHARSET_UTF8;
     $mail->XMailer = 'hegerberg.at';
 
-    $mail->setFrom(sprintf('Website Formular <%s>', $konfig['absender']), $konfig['absender_name']);
+    $mail->setFrom($konfig['absender'], $konfig['absender_name']);
     $mail->addAddress($konfig['empfaenger']);
     // Antworten gehen direkt an die anfragende Person.
     $mail->addReplyTo($email, $vorname . ' ' . $nachname);
