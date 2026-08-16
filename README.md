@@ -1,65 +1,153 @@
 # hegerberg.at
 
-Website für das **Schutzhaus am Hegerberg** (Stössing, Bezirk St. Pölten Land)..
+Website für das **Schutzhaus am Hegerberg** (Stössing, Bezirk St. Pölten Land).
 Statisch generiert mit [Astro](https://astro.build), redaktionell gepflegt über
-[Decap CMS](https://decapcms.org). Package Manager und Runtime: **Bun**.
+[Decap CMS](https://decapcms.org), gehostet bei **Hostinger**. Package Manager
+und Runtime: **Bun**.
+
+Die Seite wird komplett zu HTML gebaut. Auf dem Server läuft PHP nur für drei
+Dinge, die statisch nicht gehen: den CMS-Login, das Mitgliedschafts-Formular und
+die Push-Benachrichtigungen.
 
 ## Schnellstart
 
+Mit [just](https://github.com/casey/just) startet beides zusammen:
+
 ```bash
-bun install
-bun run dev          # → https://hegerberg.at
+just                 # Dev-Server + CMS-Proxy, Strg+C beendet beide
 ```
 
-Für das CMS zusätzlich in einem **zweiten Terminal**:
+Von Hand geht es auch – dann braucht es zwei Terminals:
 
 ```bash
+bun install
+bun run dev          # → http://localhost:4321
 bun run cms          # decap-server auf Port 8081
 ```
 
+Das Redaktionssystem liegt dann unter <http://localhost:4321/admin/>. `just`
+setzt dafür `local_backend: true` in `public/admin/config.yml`, damit Decap
+direkt in die Markdown-Dateien schreibt – **ohne Git-Login**. Vor dem Commit mit
+`just local-backend-off` wieder zurückstellen.
 
+| Befehl               | Wirkung                                       |
+| -------------------- | --------------------------------------------- |
+| `just`               | Dev-Server und CMS-Proxy zusammen              |
+| `just dev-only`      | nur der Astro-Dev-Server                       |
+| `just check`         | `astro check` (Astro- und TypeScript-Prüfung)  |
+| `just build`         | Produktions-Build nach `dist/`                 |
+| `just preview`       | Build lokal ausliefern                         |
+| `just clean`         | `dist/` und den Astro-Cache löschen            |
+| `just local-backend-off` | CMS wieder auf das GitHub-Backend stellen  |
 
-Danach ist das Redaktionssystem unter <https://hegerberg.at/admin/> erreichbar.
-Durch `local_backend: true` in `public/admin/config.yml` schreibt Decap dabei
-direkt in die Markdown-Dateien im Repository – **ohne Git-Login**.
+Dieselben Schritte gibt es als `bun run dev` / `build` / `preview` / `cms`.
 
-| Befehl            | Wirkung                                    |
-| ----------------- | ------------------------------------------ |
-| `bun run dev`     | Dev-Server mit Hot Reload                  |
-| `bun run build`   | Produktions-Build nach `dist/`             |
-| `bun run preview` | Build lokal ausliefern                     |
-| `bun run cms`     | Decap-Proxy für die lokale CMS-Bearbeitung |
+## Funktionsumfang
+
+| Bereich                     | Adresse             | Inhalt kommt aus          | Stand |
+| --------------------------- | ------------------- | ------------------------- | ----- |
+| **Startseite**              | `/`                 | `startseite/` + die übrigen Collections | live |
+| **Veranstaltungen**         | `/veranstaltungen/` | `events/`                 | live |
+| **Push-Benachrichtigungen** | `/veranstaltungen/` | –                         | live, [Einrichtung nötig](#push-benachrichtigungen) |
+| **Aktivitäten** (Touren)    | `/aktivitaeten/`    | `touren/` + GPX-Dateien   | live |
+| **Öffnungszeiten**          | `/oeffnungszeiten/` | `oeffnungszeiten/`        | live |
+| **Kontakt & Anfahrt**       | `/kontakt/`         | `src/lib/site.ts`         | live |
+| **Mitglied werden**         | `/kontakt/`, `/`    | Formular → E-Mail         | live |
+| **Galerie**                 | `/galerie/`         | `galerie/`                | live, **noch keine Bilder gepflegt** |
+| **Geschichte**              | `/geschichte/`      | `geschichte/`             | live, **noch keine Kapitel gepflegt** |
+| **Speisekarte**             | `/speisekarte/` (wird nicht gebaut) | `speisekarte/`  | **derzeit deaktiviert**, [siehe unten](#speisekarte--derzeit-deaktiviert) |
+| **Impressum & Datenschutz** | `/impressum/`, `/datenschutz/` | Vorlagen im Code | live |
+| **Redaktionssystem**        | `/admin/`           | Decap CMS + GitHub-OAuth  | live |
+
+### Was die Bereiche können
+
+- **Startseite** – Titelbild, Begrüßung, kompaktes Öffnungszeiten-Widget,
+  Geschichte-Teaser, die drei nächsten Veranstaltungen, alle Touren und das
+  Formular „Mitglied werden“. Die redaktionellen Texte der Abschnitte stehen in
+  `src/content/startseite/index.md`.
+- **Veranstaltungen** – Übersicht mit kommenden Terminen, darunter „Bereits
+  gewesen“ (die letzten sechs). Jede Veranstaltung hat eine Detailseite mit
+  Fließtext und optionaler Bildergalerie. Abgesagte Termine werden nicht
+  gelöscht, sondern ausgegraut und mit einem roten „Abgesagt:“ gekennzeichnet.
+  Mehrtägige Veranstaltungen haben ein Enddatum.
+- **Push-Benachrichtigungen** – Wer will, bekommt aufs Handy eine Mitteilung,
+  sobald über das CMS eine neue Veranstaltung angelegt wird. Details weiter
+  unten.
+- **Aktivitäten** – Mountainbike-Touren und Wanderungen. Länge, Höhenmeter,
+  Dauer und Höhenprofil werden **beim Build** aus der hochgeladenen GPX-Datei
+  berechnet (`src/lib/gpx.ts`); im Browser landet nur noch der fertige
+  Linienzug. Detailseite mit OpenStreetMap-Karte, Höhenprofil als SVG,
+  Kennzahlen und GPX-Download.
+- **Öffnungszeiten** – Wochentabelle mit Ruhetagen und Hinweisen, dazu ein
+  Live-Status „Jetzt geöffnet“ / „Derzeit geschlossen“.
+- **Kontakt** – Anfahrt, Kontaktdaten und eine OpenStreetMap-Karte, die erst
+  auf Klick geladen wird.
+- **Mitglied werden** – Formular, das über `api/mitgliedschaft.php` und
+  PHPMailer zwei E-Mails verschickt: die Anfrage ans Schutzhaus und eine
+  Bestätigung an die anfragende Person. Mit JavaScript prüft zod die Eingaben
+  vorab, ohne JavaScript greift der normale POST samt Weiterleitung.
+- **Galerie** – Raster nach Kategorien mit Großansicht. Collection, CMS-Maske
+  und Seite stehen bereit, `src/content/galerie/` ist aber noch leer – die
+  Seite bleibt deshalb vorerst ohne Bilder.
+- **Geschichte** – Kapitel mit Jahr, Bild und Fließtext. Ebenfalls fertig
+  angelegt, aber `src/content/geschichte/` ist noch leer. Solange das so ist,
+  blendet die Startseite auch den Geschichte-Teaser aus.
+
+Für die beiden leeren Collections meldet der Build
+`The collection "galerie"/"geschichte" does not exist or is empty` – das ist
+kein Fehler, sondern verschwindet mit dem ersten Eintrag.
+
+### Speisekarte – derzeit deaktiviert
+
+Die Speisekarte ist **vollständig vorhanden, aber abgeschaltet**. Deaktiviert
+wurde sie an drei Stellen:
+
+| Stelle                            | Zustand                                        |
+| --------------------------------- | ---------------------------------------------- |
+| `src/pages/speisekarte.astro.disabled` | Endung `.disabled` – Astro baut keine Seite |
+| `src/lib/site.ts`                 | Navigationseintrag auskommentiert               |
+| `src/pages/index.astro`           | Block „Hausspezialitäten“ auskommentiert        |
+
+Unberührt bleiben die 17 Einträge in `src/content/speisekarte/`, das Schema in
+`src/content.config.ts`, die CMS-Maske und die Komponenten `SpeiseEintrag` und
+`AllergenLegende`. Zum Wiedereinschalten also: Datei in `speisekarte.astro`
+umbenennen und die beiden auskommentierten Blöcke wieder aktivieren – inklusive
+Allergen-Kennzeichnung A–R nach österreichischem Codex-Kapitel B 33.
 
 ## Projektstruktur
 
 ```
 src/
-├── components/       Header, Footer, Hero, Öffnungszeiten-Widget, Karten …
+├── components/       Header, Footer, Hero, Karten, Höhenprofil, Formulare …
 ├── content/          Redaktionelle Inhalte als Markdown
-│   ├── speisekarte/
-│   ├── oeffnungszeiten/
-│   ├── geschichte/
-│   └── events/
+│   ├── startseite/       Texte der Abschnitte auf /
+│   ├── events/           Veranstaltungen
+│   ├── touren/           Mountainbike- und Wandertouren
+│   ├── oeffnungszeiten/  Ein Eintrag je Wochentag
+│   ├── speisekarte/      Speisen und Getränke (Seite derzeit deaktiviert)
+│   ├── geschichte/       Kapitel (noch leer)
+│   └── galerie/          Fotos (noch nicht angelegt)
 ├── content.config.ts Zod-Schemas der Content Collections
-├── layouts/          BaseLayout mit SEO-Meta und JSON-LD
-├── lib/              Stammdaten, Allergene, Formatierung, Öffnungszeiten-Logik
+├── layouts/          BaseLayout mit SEO-Meta, JSON-LD und Web-Manifest
+├── lib/              Stammdaten, GPX-Auswertung, Öffnungszeiten-Logik, …
 ├── pages/            Eine Datei je Route
 │   └── admin/        Decap-CMS-Oberfläche → dist/admin/index.html
 └── styles/           Tailwind-Theme (global.css)
 
 public/
 ├── admin/config.yml  Feldkonfiguration des CMS
-├── api/              PHP-Endpunkte: Kontaktformular und Push-Benachrichtigungen
+├── api/              PHP: Kontaktformular und Push-Benachrichtigungen
+├── oauth/            PHP: OAuth-Proxy für den CMS-Login
+├── gpx/              GPX-Dateien der Touren
 ├── icons/            App-Symbole für den Home-Bildschirm
 ├── images/uploads/   Vom CMS hochgeladene Bilder
-├── oauth/            OAuth-Proxy für den CMS-Login
-├── sw.js             Service Worker für die Push-Benachrichtigungen
+├── sw.js             Service Worker der Push-Benachrichtigungen
 ├── site.webmanifest  Damit sich die Seite installieren lässt
-├── _headers          Security-Header (Netlify & Cloudflare Pages)
+├── _headers          Security-Header (nur Netlify & Cloudflare Pages)
 └── robots.txt
 
 scripts/
-└── veranstaltung-melden.mjs   Schickt neue Veranstaltungen an den Push-Endpunkt
+└── veranstaltung-melden.mjs   Meldet neue Veranstaltungen an den Push-Endpunkt
 ```
 
 Die CMS-Oberfläche liegt unter `src/pages/admin/index.astro` statt als statische
@@ -69,19 +157,26 @@ Build erzeugt daraus wie gewohnt eine statische `dist/admin/index.html`.
 
 ## Inhalte pflegen
 
-Alle vier Collections sind im Admin-Panel editierbar:
+Sieben Collections sind im Admin-Panel editierbar:
 
-- **Speisekarte** – Kategorie, Bezeichnung, Beschreibung, Preis, Allergene (A–R),
-  Verfügbarkeit, Hausspezialität, Sortierung
-- **Öffnungszeiten** – ein Eintrag je Wochentag, mit Ruhetag-Flag und
-  Schlechtwetter-Hinweis. Anlegen und Löschen ist bewusst deaktiviert.
-- **Geschichte** – Kapitel mit Jahr, Kurzbeschreibung, Bild und Fließtext
-- **Veranstaltungen** – Titel, Datum (optional Enddatum), Uhrzeit, Bild,
-  Absage-Flag
+| Collection         | Anlegen/Löschen | Besonderheit                                        |
+| ------------------ | --------------- | --------------------------------------------------- |
+| **Startseite**     | –               | Einzeleintrag, nur die Abschnittstexte               |
+| **Veranstaltungen**| ja              | Slug `JJJJ-MM-TT-titel`, löst eine Push-Nachricht aus |
+| **Aktivitäten**    | ja              | GPX-Upload, Kennzahlen werden berechnet              |
+| **Öffnungszeiten** | nein            | fest sieben Einträge, Anlegen bewusst gesperrt       |
+| **Speisekarte**    | ja              | pflegbar, Seite aber deaktiviert                     |
+| **Geschichte**     | ja              | noch keine Einträge                                  |
+| **Galerie**        | ja              | noch keine Einträge                                  |
 
 Die Schemas in `src/content.config.ts` und die Felder in
 `public/admin/config.yml` müssen zueinander passen – wird ein Feld ergänzt,
 gehört es an beide Stellen.
+
+Zwei Eigenheiten von Decap, die in den Schemas abgefangen werden: Geleerte
+Felder werden als leerer String geschrieben statt entfernt (`leerAlsUndefined`),
+und eine geleerte Liste kommt als `null` an (Fallback auf `[]` bei
+`events.galerie`).
 
 ### Öffnungszeiten-Status
 
@@ -91,33 +186,48 @@ Das Widget auf Start- und Öffnungszeiten-Seite zeigt „Jetzt geöffnet“ bzw.
 er trotz statischem Build stimmt. Ohne JavaScript bleibt die Wochentabelle
 sichtbar, nur das Status-Badge fehlt.
 
+### Touren und GPX
+
+Eine neue Tour braucht nur eine GPX-Datei; alles Weitere entsteht beim Build:
+
+- `src/lib/gpx.ts` liest die Datei aus `public/gpx/`, berechnet Distanz,
+  Höhenmeter, Dauer und Profil und vereinfacht den Linienzug für die Karte.
+- Die Dauer lässt sich im CMS mit `dauerMinuten` überschreiben, wenn die
+  Schätzung nicht passt.
+- Die Karte (`TourKarte.astro`, Leaflet) lädt ihre Kacheln erst, wenn sie ins
+  Sichtfeld scrollt. Ohne JavaScript wird stattdessen der GPX-Download
+  angeboten.
+
 ## Stammdaten anpassen
 
-Adresse, Telefonnummer, E-Mail, Geokoordinaten und Impressumsangaben stehen
-zentral in **`src/lib/site.ts`**. Die dort mit `PLATZHALTER` markierten Werte
-sind erfunden und müssen vor dem Livegang durch die echten Daten ersetzt werden.
-Sie fließen in Header, Footer, Kontaktseite, Impressum und das JSON-LD für
-Suchmaschinen ein.
+Adresse, Telefonnummer, E-Mail, Geokoordinaten, Navigation und
+Impressumsangaben stehen zentral in **`src/lib/site.ts`**. Die dort mit
+`PLATZHALTER` markierten Werte sind erfunden und müssen vor dem Livegang durch
+die echten Daten ersetzt werden. Sie fließen in Header, Footer, Kontaktseite,
+Impressum und das JSON-LD für Suchmaschinen ein.
 
 Das Hero-Bild ist derzeit ein generiertes SVG-Panorama
-(`public/images/hero.svg`). Für ein echtes Foto die Datei ersetzen oder in
-`src/pages/index.astro` `<Hero bild="/images/foto.jpg" />` setzen.
+(`public/images/hero.svg`). Für ein echtes Foto die Datei ersetzen oder im CMS
+unter „Startseite → Titelbild“ eines hochladen.
 
 ## Deployment
 
-Das Projekt wird bei **Hostinger** gehostet und nutzt **GitHub** als CMS-Backend.
+Jeder Push auf `main` – also auch jede Änderung über `/admin/` – baut die Seite
+und lädt `dist/` per FTP zu Hostinger
+(`.github/workflows/deploy.yml`). Die Upload-Action **löscht auf dem Server
+nichts**: Gelöschte Seiten bleiben liegen, bis sie von Hand aus dem Dateimanager
+entfernt werden.
+
+Beim Deploy entstehen aus GitHub-Secrets drei Konfigurationsdateien, die nicht
+im Repository stehen: `oauth/config.php`, `api/config.php` (SMTP) und
+`api/push-config.php`. Welche Secrets dafür in der Environment **FTP** liegen
+müssen, steht im Kopf von `deploy.yml`.
 
 ### OAuth-Authentifizierung
 
-Für die Authentifizierung über GitHub ist ein PHP-Script erforderlich:
-
-- **Speicherort:** `public/oauth/`
-- **Aufgabe:** Verarbeitet den OAuth-Flow zwischen Decap CMS und GitHub
-
-### GitHub-Konfiguration
-
-In den **GitHub App-Settings** muss folgende Redirect-/Callback-URL hinterlegt
-werden:
+Der CMS-Login läuft über `public/oauth/index.php` auf derselben Domain –
+gespeichert wird danach direkt über die GitHub-API aus dem Browser. In den
+GitHub-App-Settings muss diese Callback-URL hinterlegt sein:
 
 ```
 https://hegerberg.at/oauth
@@ -156,6 +266,9 @@ das abonniert haben, eine Mitteilung. Der Weg dorthin:
 Geändert oder gelöscht wird nichts gemeldet – nur neue Dateien. Eine
 Veranstaltung, die schon beim Anlegen als *abgesagt* markiert ist, wird
 übersprungen.
+
+> Der Melde-Workflow greift erst, wenn er auf `main` liegt: GitHub liest
+> `workflow_run`-Workflows ausschließlich vom Default-Branch.
 
 ### Beteiligte Dateien
 
@@ -277,14 +390,27 @@ allerdings nicht; dafür `public/` mit `php -S 127.0.0.1:8099` ausliefern, eine
 anlegen und die Bibliotheken lokal per Composer nach `public/vendor/`
 installieren.
 
+## Suchmaschinen und Metadaten
+
+`src/layouts/BaseLayout.astro` setzt Titel, Beschreibung, Canonical-URL,
+Open-Graph-Angaben und ein JSON-LD vom Typ `Restaurant` samt Adresse,
+Geokoordinaten und Öffnungszeiten. `@astrojs/sitemap` erzeugt beim Build eine
+Sitemap und lässt `/admin/` bewusst aus.
+
 ## Datenschutz-Hinweise
 
-- Die Karte auf der Kontaktseite lädt OpenStreetMap erst nach explizitem Klick.
+- Die Karte auf der **Kontaktseite** lädt OpenStreetMap erst nach explizitem
+  Klick.
+- Die Karten auf den **Tour-Detailseiten** laden ihre Kacheln dagegen
+  automatisch, sobald sie ins Sichtfeld scrollen – dabei geht die IP-Adresse an
+  OpenStreetMap. Wer das auch dort erst nach Zustimmung möchte, müsste
+  `TourKarte.astro` auf denselben Klick-Mechanismus umstellen wie die
+  Kontaktseite.
 - Push-Benachrichtigungen werden nur nach ausdrücklichem Einschalten und
   Browser-Erlaubnis abonniert. Gespeichert wird allein die vom Browser erzeugte
-  Abo-Adresse samt Verschlüsselungsschlüsseln – siehe
-  `src/pages/datenschutz.astro`.
+  Abo-Adresse samt Verschlüsselungsschlüsseln.
 - Die Schriften kommen aktuell von Google Fonts (`src/layouts/BaseLayout.astro`).
   Für vollständige DSGVO-Konformität sollten sie selbst gehostet werden.
+- Keine Tracking-Cookies, keine Analyse-Tools, keine Werbenetzwerke.
 - `src/pages/datenschutz.astro` und `src/pages/impressum.astro` sind Vorlagen
   und ersetzen keine Rechtsberatung.
