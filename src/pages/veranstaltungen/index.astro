@@ -3,6 +3,7 @@ import { getCollection } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import SectionHeading from '../../components/SectionHeading.astro';
 import EventCard from '../../components/EventCard.astro';
+import PushAnmeldung from '../../components/PushAnmeldung.astro';
 
 const heute = new Date();
 heute.setHours(0, 0, 0, 0);
@@ -54,6 +55,10 @@ const vergangen = alle
         </p>
       )
     }
+
+    <div class="mt-12">
+      <PushAnmeldung />
+    </div>
 
     {
       vergangen.length > 0 && (

@@ -19,14 +19,22 @@
 #   SMTP_USER             Postfach für den Formularversand, z. B.
 #                         no-reply@hegerberg.at (ist zugleich der Absender)
 #   SMTP_PASSWORD         Passwort dieses Postfachs
+#   VAPID_PUBLIC_KEY      Öffentlicher VAPID-Schlüssel der Push-Nachrichten
+#   VAPID_PRIVATE_KEY     Privater VAPID-Schlüssel
+#   PUSH_VERSAND_TOKEN    Geheimnis zwischen Melde-Workflow und
+#                         api/push-versand.php
 #
 # Optionale Environment-Variablen (Voreinstellung in Klammern):
-#   SMTP_HOST    (smtp.hostinger.com)
-#   SMTP_PORT    (465)
-#   SMTP_SECURE  (ssl – für Port 587 auf tls stellen)
+#   SMTP_HOST      (smtp.hostinger.com)
+#   SMTP_PORT      (465)
+#   SMTP_SECURE    (ssl – für Port 587 auf tls stellen)
+#   VAPID_SUBJECT  (mailto:office@hegerberg.at)
 #
-# PHPMailer selbst wird nicht hier hochgeladen, sondern einmalig über den
-# manuellen Workflow .github/workflows/phpmailer.yml.
+# Fehlen die drei Push-Werte, läuft der Deploy trotzdem durch – dann bleiben
+# nur die Benachrichtigungen abgeschaltet.
+#
+# PHPMailer und web-push werden nicht hier hochgeladen, sondern einmalig über
+# den manuellen Workflow .github/workflows/php-bibliotheken.yml.
 #
 # Wichtig: Environment-Secrets sind nur sichtbar, wenn der Job die Environment
 # unten über `environment:` anfordert – sonst sind sie schlicht leer.
@@ -151,6 +159,58 @@ jobs:
 
           rm -f dist/api/config.example.php
 
+      - name: Push-Zugangsdaten erzeugen
+        env:
+          VAPID_PUBLIC_KEY: ${{ secrets.VAPID_PUBLIC_KEY }}
+          VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY }}
+          VAPID_SUBJECT: ${{ vars.VAPID_SUBJECT }}
+          PUSH_VERSAND_TOKEN: ${{ secrets.PUSH_VERSAND_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          # Die Vorlage ist reine Dokumentation und hat auf dem Server nichts
+          # verloren – unabhängig davon, ob die Schlüssel gesetzt sind.
+          rm -f dist/api/push-config.example.php
+
+          # Solange die Schlüssel nicht hinterlegt sind, bleibt der Deploy
+          # trotzdem grün: Ohne push-config.php sind nur die Benachrichtigungen
+          # abgeschaltet, die Seite selbst funktioniert vollständig.
+          if [ -z "${VAPID_PUBLIC_KEY:-}" ] || [ -z "${VAPID_PRIVATE_KEY:-}" ] || [ -z "${PUSH_VERSAND_TOKEN:-}" ]; then
+            echo "::warning::VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY oder PUSH_VERSAND_TOKEN fehlt in der Environment FTP – Push-Benachrichtigungen bleiben aus. Siehe README, Abschnitt „Push-Benachrichtigungen“."
+            exit 0
+          fi
+
+          subject=${VAPID_SUBJECT:-mailto:office@hegerberg.at}
+
+          # Für einfach gequotete PHP-Strings müssen nur \ und ' maskiert
+          # werden. Die Werte werden dabei nie ausgegeben.
+          maskieren() { local w=${1//\\/\\\\}; printf '%s' "${w//\'/\\\'}"; }
+          oeffentlich=$(maskieren "$VAPID_PUBLIC_KEY")
+          privat=$(maskieren "$VAPID_PRIVATE_KEY")
+          subject=$(maskieren "$subject")
+          token=$(maskieren "$PUSH_VERSAND_TOKEN")
+
+          cat > dist/api/push-config.php <<EOF
+          <?php
+          // Wird bei jedem Deploy aus den GitHub-Secrets erzeugt – nicht von
+          // Hand bearbeiten.
+          return [
+              'vapid_oeffentlich' => '${oeffentlich}',
+              'vapid_privat' => '${privat}',
+              'vapid_subject' => '${subject}',
+              'versand_token' => '${token}',
+              // Liegt eine Ebene über public_html und ist damit über den
+              // Browser nicht erreichbar.
+              'datenverzeichnis' => __DIR__ . '/../../push-daten',
+          ];
+          EOF
+
+          if command -v php >/dev/null; then
+            php -l dist/api/push-config.php
+          else
+            echo "PHP auf dem Runner nicht verfügbar – Syntaxprüfung übersprungen."
+          fi
+
       # Docker-Action – dadurch unabhängig von der Node-Version des Runners.
       - name: Per FTP hochladen
         uses: SamKirkland/FTP-Deploy-Action@v4.4.0
@@ -169,5 +229,7 @@ jobs:
             **/node_modules/**
             oauth/config.example.php
             api/config.example.php
-            # PHPMailer kommt aus dem Workflow „PHPMailer hochladen“.
+            api/push-config.example.php
+            # PHPMailer und web-push kommen aus dem Workflow
+            # „PHP-Bibliotheken hochladen“.
             vendor/**

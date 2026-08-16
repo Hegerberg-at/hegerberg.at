@@ -1,0 +1,23 @@
+{
+  "name": "Schutzhaus am Hegerberg",
+  "short_name": "Hegerberg",
+  "description": "Das Schutzhaus am Hegerberg bei Stössing",
+  "lang": "de-AT",
+  "start_url": "/veranstaltungen/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#faf6f1",
+  "theme_color": "#2e4f34",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

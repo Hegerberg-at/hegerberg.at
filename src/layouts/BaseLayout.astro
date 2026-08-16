@@ -60,6 +60,12 @@ const jsonLd = {
     <link rel="icon" type="image/svg+xml" href="/favicon.png" />
     <meta name="generator" content={Astro.generator} />
 
+    {/* Für die Installation auf dem Home-Bildschirm – auf iOS die Bedingung
+        dafür, dass Push-Benachrichtigungen überhaupt möglich sind. */}
+    <link rel="manifest" href="/site.webmanifest" />
+    <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+    <meta name="theme-color" content="#2e4f34" />
+
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content={site.name} />
     <meta property="og:title" content={seitentitel} />

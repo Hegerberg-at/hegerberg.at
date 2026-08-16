@@ -29,5 +29,14 @@ public/oauth/config.php
 # SMTP-Zugangsdaten des Kontaktformulars (wird beim Deploy erzeugt)
 public/api/config.php
 
-# PHPMailer – liegt nur auf dem Server, siehe .github/workflows/phpmailer.yml
+# PHPMailer und web-push – liegen nur auf dem Server, siehe
+# .github/workflows/php-bibliotheken.yml
 public/vendor/
+
+# VAPID-Schlüssel der Push-Benachrichtigungen (wird beim Deploy erzeugt)
+public/api/push-config.php
+
+# Die abonnierten Geräte. Auf dem Server liegen sie eine Ebene über
+# public_html, lokal landen sie hier – in beiden Fällen nichts fürs Repository.
+push-daten/
+public/api/push-daten/
