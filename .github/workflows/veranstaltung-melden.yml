@@ -85,7 +85,7 @@ jobs:
         if: steps.neu.outputs.dateien != ''
         env:
           PUSH_VERSAND_TOKEN: ${{ secrets.PUSH_VERSAND_TOKEN }}
-          PUSH_ENDPUNKT: ${{ vars.PUSH_ENDPUNKT }}
+          PUSH_ENDPUNKT: ${{ vars.PUSH_ENDPUNKT || 'https://hegerberg.at/api/push-versand.php' }}
           DATEIEN: ${{ steps.neu.outputs.dateien }}
         run: |
           set -euo pipefail
