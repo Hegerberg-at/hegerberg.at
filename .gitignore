@@ -6,6 +6,12 @@ dist/
 # dependencies
 node_modules/
 
+# Lockfile stays out of the repository on purpose: locally the packages are
+# installed through the internal repo proxy of the City of Vienna, whose host
+# ends up in bun.lock as the resolved registry URL. The GitHub runner cannot
+# reach that host, so a committed bun.lock breaks the deploy.
+bun.lock
+
 # logs
 npm-debug.log*
 yarn-debug.log*

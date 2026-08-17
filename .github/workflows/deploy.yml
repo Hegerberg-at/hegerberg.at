@@ -68,6 +68,12 @@ jobs:
 
       # Without a bun.lock in the repository this cannot install against a
       # pinned state – the versions follow from package.json.
+      #
+      # Do not "fix" this by committing a bun.lock: locally the packages are
+      # installed through the internal repo proxy of the City of Vienna, whose
+      # host ends up in the lockfile as the resolved registry URL. This runner
+      # cannot reach it, so a committed lockfile breaks the deploy. The file is
+      # therefore listed in .gitignore.
       - name: Install dependencies
         run: bun install
 

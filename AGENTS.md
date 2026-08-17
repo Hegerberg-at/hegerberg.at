@@ -1,3 +1,34 @@
+## Code is English, content is German
+
+Never write German code. No `klasse` instead of `class`, no `berechneSumme`,
+no `$anfrage`, no `text-holz-950`. Everything the compiler, the browser or a
+developer reads is English:
+
+- variable, function, type, class and property names
+- file and directory names
+- CSS classes and design tokens
+- code comments and JSDoc
+- data attributes, HTML `id`s and SVG ids
+- frontmatter keys of the content collections, and the matching `name:` fields
+  in `public/admin/config.yml`
+- JSON keys of the PHP endpoints, form field names and config keys
+
+German stays only where a human reader sees it:
+
+- all content and UI text (`Öffnungszeiten ansehen`, `Diese Veranstaltung wurde
+  abgesagt.`)
+- public URLs (`/veranstaltungen/`, `/aktivitaeten/`) and content slugs
+- the CMS interface: `label`, `label_singular`, `hint`, `description` in
+  `public/admin/config.yml`
+- enum *values* that are rendered as they are (`Montag`, `Wanderung`, `mittel`,
+  `Hauptspeisen`)
+- error and status messages shown to visitors
+- `README.md` and this file
+
+Two exceptions carry a comment explaining themselves, do not "clean them up":
+the data directory `push-daten/` and the legacy key `endpunkt` in
+`public/api/push-send.php` — both point at live data on the server.
+
 ## Never commit `local_backend: true`
 
 `public/admin/config.yml` must always be committed with `local_backend: false`.
