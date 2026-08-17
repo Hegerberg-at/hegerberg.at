@@ -5,13 +5,13 @@
  * contact details of the Schutzhaus.
  */
 export const site = {
-  name: 'Schutzhaus am Hegerberg',
+  name: 'Johann Enzinger Schutzhaus',
   shortName: 'Hegerberg',
   /** Registered name of the non-profit association running the Schutzhaus. */
   legalName: 'Touristenverein Hegerberg',
-  claim: 'Das Schutzhaus am Hegerberg bei Stössing',
+  claim: 'Johann Enzinger Schutzhaus bei Stössing',
   description:
-    'Das Schutzhaus am Hegerberg bei Stössing',
+    'Johann Enzinger Schutzhaus bei Stössing',
   domain: 'https://hegerberg.at',
 
   /**
@@ -51,14 +51,8 @@ export const site = {
     instagram: '',
   },
 
-  /** Legal notice – PLATZHALTER, please have this reviewed legally. */
   legal: {
     owner: 'Schutzhaus am Hegerberg',
-    /**
-     * Register number of the association (Vereinsregister). Required on the
-     * publications of an Austrian association – PLATZHALTER, still to be
-     * filled in with the real number.
-     */
     zvr: 'PLATZHALTER',
     businessPurpose: 'Gastgewerbe',
     authority: 'Bezirkshauptmannschaft St. Pölten',

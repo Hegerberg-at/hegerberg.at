@@ -18,7 +18,7 @@ const home = await getEntry('home', 'index');
 if (!home) {
   throw new Error('src/content/home/index.md fehlt.');
 }
-const { hero, welcome, specialties: kitchen, cta } = home.data;
+const { hero, welcome, specialties: kitchen } = home.data;
 const eventsText = home.data.events;
 
 const today = new Date();
