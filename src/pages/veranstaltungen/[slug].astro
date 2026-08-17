@@ -38,7 +38,11 @@ today.setHours(0, 0, 0, 0);
 const isPast = (data.endDate ?? data.date) < today;
 ---
 
-<BaseLayout title={data.title} description={data.description}>
+<BaseLayout
+  title={data.title}
+  description={data.description}
+  image={data.image}
+>
   <article class="container-page py-12 sm:py-16">
     <a
       href="/veranstaltungen/"
