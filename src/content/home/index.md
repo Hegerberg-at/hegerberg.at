@@ -1,7 +1,7 @@
 ---
 hero:
   image: /images/uploads/hegerberg-hero.jpg
-  title: Johann Enzinger Schutzhaus am Hegerberg
+  title: Johann Enzinger Schutzhaus
   subtitle: Gastfreundschaft auf 655 Metern im Wienerwald
 welcome:
   eyebrow: Willkommen
