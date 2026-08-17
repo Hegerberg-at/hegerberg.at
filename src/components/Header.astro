@@ -16,12 +16,14 @@ const isActive = (href: string) =>
       href="/"
       class="flex items-center gap-3 text-wood-50 transition hover:text-wood-200"
     >
+      {/* Rendered 48 px high; logo.png is twice that for retina screens.
+          `w-auto` keeps the logo's proportions – it is not square. */}
       <img
-        src="/favicon.png"
+        src="/logo.png"
         alt=""
-        width="48"
-        height="48"
-        class="h-12 w-12 transition group-hover/header:scale-105"
+        width="109"
+        height="96"
+        class="h-12 w-auto transition group-hover/header:scale-105"
       />
       <span class="leading-tight">
         <span class="block font-display text-lg font-bold sm:text-xl"
