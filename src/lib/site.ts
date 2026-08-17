@@ -14,6 +14,17 @@ export const site = {
     'Das Schutzhaus am Hegerberg bei Stössing',
   domain: 'https://hegerberg.at',
 
+  /**
+   * Default preview image for social networks, relative to the site root.
+   * Pages can override it through the `image` prop of BaseLayout.
+   */
+  ogImage: {
+    path: '/images/uploads/hegerberg-hero.jpg',
+    width: 1920,
+    height: 1088,
+    type: 'image/jpeg',
+  },
+
   address: {
     street: 'Hochstraß 27',
     postalCode: '3073',
