@@ -69,9 +69,6 @@ const home = defineCollection({
     welcome: section,
     specialties: section,
     events: section,
-    cta: z.object({
-      title: z.string(),
-    }),
   }),
 });
 

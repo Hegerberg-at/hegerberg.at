@@ -101,12 +101,6 @@ collections:
                 label: Text
                 widget: text
                 required: false
-          - name: cta
-            label: Abschluss-Box
-            widget: object
-            hint: Adresse und Telefonnummer werden automatisch ergänzt.
-            fields:
-              - { name: title, label: Überschrift, widget: string }
 
   # ---------------------------------------------------------------------- Menu
   - name: menu
