@@ -1,3 +1,22 @@
+## Never commit `local_backend: true`
+
+`public/admin/config.yml` must always be committed with `local_backend: false`.
+
+Running `just`, `just dev` or `just cms` flips it to `true` through the
+`local-backend-on` recipe, so it changes without anyone editing the file. If
+that lands on `main`, the live CMS at hegerberg.at/admin/ looks for a local
+proxy on port 8081 instead of talking to GitHub — editors are locked out.
+
+Before every commit, check the flag and reset it if needed:
+
+```
+grep '^local_backend' public/admin/config.yml   # must read: local_backend: false
+just local-backend-off                          # resets it
+```
+
+Also check it explicitly whenever you stage with `git add -A`, and never let it
+slip into a commit as an unrelated side change.
+
 ## Development
 
 When starting the dev server, use background mode:
