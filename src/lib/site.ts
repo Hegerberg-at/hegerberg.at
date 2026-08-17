@@ -49,6 +49,7 @@ export const site = {
   social: {
     facebook: '',
     instagram: '',
+    github: 'https://github.com/Hegerberg-at/hegerberg.at',
   },
 
   legal: {
