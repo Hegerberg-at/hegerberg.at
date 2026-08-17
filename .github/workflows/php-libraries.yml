@@ -1,0 +1,133 @@
+#
+# Copy the PHP libraries to the Hostinger web hosting.
+#
+# Runs by hand only (Actions → „Upload PHP libraries“ → Run workflow).
+# The libraries change rarely and do not belong in the repository, so they are
+# uploaded separately from the site deploy and stay there: the deploy workflow
+# only transfers dist/ and deletes nothing on the server.
+#
+# Both libraries deliberately come from one shared Composer project. Two
+# separate projects would overwrite each other's autoloader in vendor/ – after
+# the second upload the other library would no longer be loadable.
+#
+#   phpmailer/phpmailer     sending the membership form
+#                           (public/api/membership.php)
+#   minishlink/web-push     sending the push notifications
+#                           (public/api/push-send.php)
+#   guzzlehttp/guzzle       HTTP client that web-push looks for at runtime
+#
+# Target on the server: <public_html>/vendor/ – exactly the directory the two
+# PHP scripts include through ../vendor/.
+#
+# After each run the contact form and a test notification should be tried once
+# (see README, section „Push-Benachrichtigungen“).
+#
+# Credentials from the GitHub environment „FTP“ (same as for the deploy):
+#   FTPSERVER    FTP host from the hPanel (variable)
+#   FTPUSER      FTP user from the hPanel (variable)
+#   FTPPASSWORD  FTP password (secret)
+
+name: Upload PHP libraries
+
+on:
+  workflow_dispatch:
+    inputs:
+      phpmailer:
+        description: 'PHPMailer-Version (Composer-Constraint)'
+        required: true
+        default: '^7.1'
+      webpush:
+        description: 'web-push-Version (Composer-Constraint)'
+        required: true
+        default: '^11.0'
+
+# Not at the same time as a deploy or a second run against the FTP.
+concurrency:
+  group: php-libraries-upload
+  cancel-in-progress: false
+
+jobs:
+  upload:
+    name: Install and upload libraries
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: FTP
+
+    steps:
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          # Has to match the PHP version of the web hosting, so Composer does
+          # not pick a version that will not run on the server. web-push
+          # requires at least 8.2.
+          php-version: '8.2'
+          # The same extensions that are needed on the server – otherwise the
+          # check below already fails.
+          extensions: curl, mbstring, openssl, gmp
+          tools: composer
+
+      - name: Install libraries
+        env:
+          PHPMAILER: ${{ inputs.phpmailer }}
+          WEBPUSH: ${{ inputs.webpush }}
+        run: |
+          set -euo pipefail
+          mkdir -p build
+          cd build
+
+          # A dedicated, empty project: that way only the wanted libraries plus
+          # the autoloader end up in vendor/ – without their dev dependencies.
+          composer init --quiet --no-interaction --name=hegerberg/libraries --type=project
+          composer require \
+            "phpmailer/phpmailer:${PHPMAILER}" \
+            "minishlink/web-push:${WEBPUSH}" \
+            "guzzlehttp/guzzle:^7.9" \
+            --no-interaction --update-no-dev --optimize-autoloader --prefer-dist
+
+          composer show --direct
+
+      - name: Verify the installation
+        run: |
+          set -euo pipefail
+          cd build
+
+          test -f vendor/autoload.php
+          test -f vendor/phpmailer/phpmailer/src/PHPMailer.php
+
+          # Loads both classes through the very same autoloader – exactly the
+          # reason for installing them in one project.
+          php -r 'require "vendor/autoload.php";
+                  echo "PHPMailer ", PHPMailer\PHPMailer\PHPMailer::VERSION, PHP_EOL;
+                  new PHPMailer\PHPMailer\PHPMailer(true);
+                  $pair = Minishlink\WebPush\VAPID::createVapidKeys();
+                  new Minishlink\WebPush\WebPush(["VAPID" => [
+                      "subject" => "mailto:office@hegerberg.at",
+                      "publicKey" => $pair["publicKey"],
+                      "privateKey" => $pair["privateKey"],
+                  ]]);
+                  echo "web-push einsatzbereit", PHP_EOL;'
+
+          # A direct call through the browser should serve nothing. Works on
+          # Apache/LiteSpeed; if the server is configured differently the file
+          # does no harm.
+          printf 'Deny from all\n' > vendor/.htaccess
+
+          du -sh vendor
+
+      - name: Upload via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.4.0
+        with:
+          server: ${{ vars.FTPSERVER }}
+          username: ${{ vars.FTPUSER }}
+          password: ${{ secrets.FTPPASSWORD }}
+          local-dir: ./build/vendor/
+          server-dir: /domains/hegerberg.at/public_html/vendor/
+          # A dedicated sync state, so the deploy and this workflow do not
+          # overwrite each other's file list.
+          state-name: .ftp-deploy-phpmailer-state.json
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/tests/**
+            **/test/**
+            **/examples/**

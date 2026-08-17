@@ -2,29 +2,29 @@
 
 /* Rustikale Farbwelt: Holz, Waldgrün, Sandstein */
 @theme {
-  --color-holz-50: #faf6f1;
-  --color-holz-100: #f2e9dd;
-  --color-holz-200: #e4d2ba;
-  --color-holz-300: #d2b48f;
-  --color-holz-400: #bf9263;
-  --color-holz-500: #ae7847;
-  --color-holz-600: #97613b;
-  --color-holz-700: #7a4c32;
-  --color-holz-800: #653f2e;
-  --color-holz-900: #563629;
-  --color-holz-950: #2f1c15;
+  --color-wood-50: #faf6f1;
+  --color-wood-100: #f2e9dd;
+  --color-wood-200: #e4d2ba;
+  --color-wood-300: #d2b48f;
+  --color-wood-400: #bf9263;
+  --color-wood-500: #ae7847;
+  --color-wood-600: #97613b;
+  --color-wood-700: #7a4c32;
+  --color-wood-800: #653f2e;
+  --color-wood-900: #563629;
+  --color-wood-950: #2f1c15;
 
-  --color-wald-50: #f3f7f3;
-  --color-wald-100: #e2ebe1;
-  --color-wald-200: #c5d8c4;
-  --color-wald-300: #9bbb9c;
-  --color-wald-400: #6d9a70;
-  --color-wald-500: #4c7c52;
-  --color-wald-600: #39623f;
-  --color-wald-700: #2e4f34;
-  --color-wald-800: #27402c;
-  --color-wald-900: #213626;
-  --color-wald-950: #101e13;
+  --color-forest-50: #f3f7f3;
+  --color-forest-100: #e2ebe1;
+  --color-forest-200: #c5d8c4;
+  --color-forest-300: #9bbb9c;
+  --color-forest-400: #6d9a70;
+  --color-forest-500: #4c7c52;
+  --color-forest-600: #39623f;
+  --color-forest-700: #2e4f34;
+  --color-forest-800: #27402c;
+  --color-forest-900: #213626;
+  --color-forest-950: #101e13;
 
   --font-display: 'Bitter', ui-serif, Georgia, serif;
   --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
@@ -36,7 +36,7 @@
   }
 
   body {
-    @apply bg-holz-50 text-holz-950 font-sans antialiased;
+    @apply bg-wood-50 text-wood-950 font-sans antialiased;
   }
 
   h1,
@@ -47,7 +47,7 @@
   }
 
   :focus-visible {
-    @apply outline-2 outline-offset-2 outline-wald-600;
+    @apply outline-2 outline-offset-2 outline-forest-600;
   }
 }
 
@@ -64,26 +64,26 @@
   }
 
   .btn-primary {
-    @apply btn bg-wald-700 text-holz-50 shadow-lg shadow-wald-950/20
-           hover:bg-wald-800 focus-visible:outline-wald-700;
+    @apply btn bg-forest-700 text-wood-50 shadow-lg shadow-forest-950/20
+           hover:bg-forest-800 focus-visible:outline-forest-700;
   }
 
   .btn-secondary {
-    @apply btn border-2 border-holz-50/70 bg-transparent text-holz-50
-           hover:bg-holz-50 hover:text-holz-950 focus-visible:outline-holz-50;
+    @apply btn border-2 border-wood-50/70 bg-transparent text-wood-50
+           hover:bg-wood-50 hover:text-wood-950 focus-visible:outline-wood-50;
   }
 
   .btn-outline {
-    @apply btn border-2 border-holz-300 bg-transparent text-holz-800
-           hover:border-holz-500 hover:bg-holz-100 focus-visible:outline-holz-500;
+    @apply btn border-2 border-wood-300 bg-transparent text-wood-800
+           hover:border-wood-500 hover:bg-wood-100 focus-visible:outline-wood-500;
   }
 
   .card {
-    @apply rounded-2xl border border-holz-200 bg-white shadow-sm;
+    @apply rounded-2xl border border-wood-200 bg-white shadow-sm;
   }
 
   .eyebrow {
-    @apply text-xs font-semibold uppercase tracking-[0.2em] text-wald-700;
+    @apply text-xs font-semibold uppercase tracking-[0.2em] text-forest-700;
   }
 }
 

@@ -1,9 +1,9 @@
 ---
-titel: Bergmesse
-datum: 2026-09-06
-datumBis: 2026-09-06
-uhrzeit: 09:00
-beschreibung: Bergmesse am Hegerberg.
-abgesagt: false
-galerie: []
+title: Bergmesse
+date: 2026-09-06
+endDate: 2026-09-06
+time: 09:00
+description: Bergmesse am Hegerberg.
+cancelled: false
+gallery: []
 ---

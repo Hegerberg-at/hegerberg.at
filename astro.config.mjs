@@ -10,8 +10,8 @@ export default defineConfig({
   trailingSlash: 'ignore',
   integrations: [
     sitemap({
-      // Das Admin-Panel gehört nicht in die Sitemap.
-      filter: (seite) => !seite.includes('/admin'),
+      // The admin panel does not belong in the sitemap.
+      filter: (page) => !page.includes('/admin'),
     }),
   ],
   vite: {

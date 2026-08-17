@@ -2,42 +2,42 @@
 import '../styles/global.css';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
-import { site, adresseEinzeilig } from '../lib/site';
-import { getOeffnungszeiten, schemaOpeningHours } from '../lib/oeffnungszeiten';
+import { site, addressOneLine } from '../lib/site';
+import { getOpeningHours, schemaOpeningHours } from '../lib/opening-hours';
 
 interface Props {
   title?: string;
   description?: string;
-  /** Blendet den transparenten Header-Modus ein (nur Startseite mit Hero). */
+  /** Enables the transparent header mode (home page with hero only). */
   transparentHeader?: boolean;
 }
 
 const {
   title,
-  description = site.beschreibung,
+  description = site.description,
   transparentHeader = false,
 } = Astro.props;
 
-const seitentitel = title ? `${title} – ${site.name}` : `${site.name}`;
+const pageTitle = title ? `${title} – ${site.name}` : `${site.name}`;
 const canonical = new URL(Astro.url.pathname, Astro.site ?? site.domain).href;
 
-const tage = await getOeffnungszeiten();
+const days = await getOpeningHours();
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'Restaurant',
   name: site.name,
-  description: site.beschreibung,
+  description: site.description,
   url: site.domain,
-  telephone: site.telefon,
+  telephone: site.phone,
   email: site.email,
   servesCuisine: 'Österreichisch',
   priceRange: '€€',
   address: {
     '@type': 'PostalAddress',
-    streetAddress: site.adresse.strasse,
-    postalCode: site.adresse.plz,
-    addressLocality: site.adresse.ort,
-    addressRegion: site.adresse.bundesland,
+    streetAddress: site.address.street,
+    postalCode: site.address.postalCode,
+    addressLocality: site.address.city,
+    addressRegion: site.address.state,
     addressCountry: 'AT',
   },
   geo: {
@@ -45,7 +45,7 @@ const jsonLd = {
     latitude: site.geo.lat,
     longitude: site.geo.lng,
   },
-  openingHours: schemaOpeningHours(tage),
+  openingHours: schemaOpeningHours(days),
 };
 ---
 
@@ -54,27 +54,27 @@ const jsonLd = {
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{seitentitel}</title>
+    <title>{pageTitle}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
     <link rel="icon" type="image/svg+xml" href="/favicon.png" />
     <meta name="generator" content={Astro.generator} />
 
-    {/* Für die Installation auf dem Home-Bildschirm – auf iOS die Bedingung
-        dafür, dass Push-Benachrichtigungen überhaupt möglich sind. */}
+    {/* For installing on the home screen – on iOS this is the prerequisite
+        for push notifications being possible at all. */}
     <link rel="manifest" href="/site.webmanifest" />
     <link rel="apple-touch-icon" href="/icons/icon-192.png" />
     <meta name="theme-color" content="#2e4f34" />
 
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content={site.name} />
-    <meta property="og:title" content={seitentitel} />
+    <meta property="og:title" content={pageTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
     <meta property="og:locale" content="de_AT" />
 
     <meta name="geo.region" content="AT-3" />
-    <meta name="geo.placename" content={adresseEinzeilig} />
+    <meta name="geo.placename" content={addressOneLine} />
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -91,13 +91,13 @@ const jsonLd = {
   </head>
   <body class="flex min-h-screen flex-col">
     <a
-      href="#inhalt"
-      class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-wald-700 focus:px-4 focus:py-2 focus:text-holz-50"
+      href="#content"
+      class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-forest-700 focus:px-4 focus:py-2 focus:text-wood-50"
     >
       Zum Inhalt springen
     </a>
     <Header transparent={transparentHeader} />
-    <main id="inhalt" class="flex-1">
+    <main id="content" class="flex-1">
       <slot />
     </main>
     <Footer />

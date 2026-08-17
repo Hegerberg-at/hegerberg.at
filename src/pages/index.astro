@@ -2,82 +2,82 @@
 import { getCollection, getEntry } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Hero from '../components/Hero.astro';
-import OeffnungszeitenWidget from '../components/OeffnungszeitenWidget.astro';
+import OpeningHoursWidget from '../components/OpeningHoursWidget.astro';
 import SectionHeading from '../components/SectionHeading.astro';
 import EventCard from '../components/EventCard.astro';
 
 import TourCard from '../components/TourCard.astro';
-import { ladeTouren } from '../lib/touren';
+import { loadTours } from '../lib/tours';
 
 import BecomeMembership from '../components/BecomeMembership.astro';
-import { site, adresseEinzeilig } from '../lib/site';
-import { formatPreis } from '../lib/format';
+import { site } from '../lib/site';
+import { formatPrice } from '../lib/format';
 
-/** Redaktionelle Texte der Startseite (Decap-Collection „startseite“). */
-const startseite = await getEntry('startseite', 'index');
-if (!startseite) {
-  throw new Error('src/content/startseite/index.md fehlt.');
+/** Editorial texts of the home page (Decap collection „Startseite“). */
+const home = await getEntry('home', 'index');
+if (!home) {
+  throw new Error('src/content/home/index.md fehlt.');
 }
-const { hero, willkommen, spezialitaeten: kueche, cta } = startseite.data;
-const veranstaltungenText = startseite.data.veranstaltungen;
+const { hero, welcome, specialties: kitchen, cta } = home.data;
+const eventsText = home.data.events;
 
-const heute = new Date();
-heute.setHours(0, 0, 0, 0);
+const today = new Date();
+today.setHours(0, 0, 0, 0);
 
 const events = (await getCollection('events'))
-  .filter((event) => (event.data.datumBis ?? event.data.datum) >= heute)
-  .sort((a, b) => a.data.datum.getTime() - b.data.datum.getTime())
+  .filter((event) => (event.data.endDate ?? event.data.date) >= today)
+  .sort((a, b) => a.data.date.getTime() - b.data.date.getTime())
   .slice(0, 3);
 
-const touren = await ladeTouren();
+const tours = await loadTours();
 
-const spezialitaeten = (await getCollection('speisekarte'))
-  .filter((speise) => speise.data.hausspezialitaet && speise.data.verfuegbar)
-  .sort((a, b) => a.data.reihenfolge - b.data.reihenfolge)
+const specialties = (await getCollection('menu'))
+  .filter((dish) => dish.data.houseSpecialty && dish.data.available)
+  .sort((a, b) => a.data.order - b.data.order)
   .slice(0, 3);
 
-const geschichte = (await getCollection('geschichte')).sort(
-  (a, b) => a.data.reihenfolge - b.data.reihenfolge,
+const history = (await getCollection('history')).sort(
+  (a, b) => a.data.order - b.data.order,
 )[0];
 ---
 
 <BaseLayout transparentHeader>
-  <Hero bild={hero.bild} titel={hero.titel} untertitel={hero.untertitel} />
+  <Hero image={hero.image} title={hero.title} subtitle={hero.subtitle} />
 
   <!-- Öffnungszeiten prominent direkt unter dem Hero -->
   <section class="container-page -mt-16 sm:-mt-20">
     <div class="grid gap-8 lg:grid-cols-[1fr_minmax(0,26rem)]">
       <div class="order-2 flex flex-col justify-center lg:order-1 lg:pt-20">
         <SectionHeading
-          eyebrow={willkommen.eyebrow}
-          titel={willkommen.titel}
-          text={willkommen.text}
+          eyebrow={welcome.eyebrow}
+          title={welcome.title}
+          text={welcome.text}
         />
         <dl class="mt-8 grid gap-6 sm:grid-cols-3">
           <div>
-            <dt class="text-xs uppercase tracking-[0.15em] text-holz-600">
+            <dt class="text-xs uppercase tracking-[0.15em] text-wood-600">
               Seehöhe
             </dt>
-            <dd class="mt-1 font-display text-2xl font-bold text-wald-800">
-              {site.geo.seehoehe}&nbsp;m
+            <dd class="mt-1 font-display text-2xl font-bold text-forest-800">
+              {site.geo.elevation}&nbsp;m
             </dd>
           </div>
           <div>
-            <dt class="text-xs uppercase tracking-[0.15em] text-holz-600">
+            <dt class="text-xs uppercase tracking-[0.15em] text-wood-600">
               Anfahrt
             </dt>
-            <dd class="mt-1 font-display text-2xl font-bold text-wald-800">
-              {site.adresse.ort}
+            <dd class="mt-1 font-display text-2xl font-bold text-forest-800">
+              {site.address.city}
             </dd>
           </div>
           <div>
-            <dt class="text-xs uppercase tracking-[0.15em] text-holz-600">
+            <dt class="text-xs uppercase tracking-[0.15em] text-wood-600">
               Reservierung
             </dt>
-            <dd class="mt-1 font-display text-2xl font-bold text-wald-800">
+            <dd class="mt-1 font-display text-2xl font-bold text-forest-800">
               <a
-                href={`tel:${site.telefon.replace(/\s/g, '')}`}
-                class="hover:underline">{site.telefonAnzeige}</a
+                href={`tel:${site.phone.replace(/\s/g, '')}`}
+                class="hover:underline">{site.phoneDisplay}</a
               >
             </dd>
           </div>
@@ -85,7 +85,7 @@ const geschichte = (await getCollection('geschichte')).sort(
       </div>
 
       <div class="order-1 lg:order-2">
-        <OeffnungszeitenWidget variante="kompakt" class="relative z-10" />
+        <OpeningHoursWidget variant="compact" class="relative z-10" />
       </div>
     </div>
   </section>
@@ -93,13 +93,13 @@ const geschichte = (await getCollection('geschichte')).sort(
   <!-- Hausspezialitäten -->
   <!-- Derzeit deaktiviert -->
   <!-- {
-    spezialitaeten.length > 0 && (
+    specialties.length > 0 && (
       <section class="container-page mt-24">
         <div class="flex flex-wrap items-end justify-between gap-6">
           <SectionHeading
-            eyebrow={kueche.eyebrow}
-            titel={kueche.titel}
-            text={kueche.text}
+            eyebrow={kitchen.eyebrow}
+            title={kitchen.title}
+            text={kitchen.text}
           />
           <a href="/speisekarte/" class="btn-outline">
             Ganze Speisekarte
@@ -107,16 +107,16 @@ const geschichte = (await getCollection('geschichte')).sort(
         </div>
 
         <ul class="mt-10 grid gap-6 md:grid-cols-3">
-          {spezialitaeten.map((speise) => (
+          {specialties.map((dish) => (
             <li class="card flex flex-col p-6">
-              <h3 class="font-display text-xl font-bold text-holz-950">
-                {speise.data.name}
+              <h3 class="font-display text-xl font-bold text-wood-950">
+                {dish.data.name}
               </h3>
-              <p class="mt-3 flex-1 text-sm leading-relaxed text-holz-700">
-                {speise.data.beschreibung}
+              <p class="mt-3 flex-1 text-sm leading-relaxed text-wood-700">
+                {dish.data.description}
               </p>
-              <p class="mt-5 font-display text-lg font-bold text-wald-800">
-                {formatPreis(speise.data.preis)}
+              <p class="mt-5 font-display text-lg font-bold text-forest-800">
+                {formatPrice(dish.data.price)}
               </p>
             </li>
           ))}
@@ -127,16 +127,16 @@ const geschichte = (await getCollection('geschichte')).sort(
 
   <!-- Geschichte-Teaser -->
   {
-    geschichte && (
-      <section class="mt-24 bg-wald-900 py-20 text-holz-100">
+    history && (
+      <section class="mt-24 bg-forest-900 py-20 text-wood-100">
         <div class="container-page grid items-center gap-12 lg:grid-cols-2">
           <div>
-            <p class="eyebrow text-wald-300">Seit {geschichte.data.jahr}</p>
-            <h2 class="mt-2 text-3xl font-bold text-holz-50 sm:text-4xl">
-              {geschichte.data.titel}
+            <p class="eyebrow text-forest-300">Seit {history.data.year}</p>
+            <h2 class="mt-2 text-3xl font-bold text-wood-50 sm:text-4xl">
+              {history.data.title}
             </h2>
-            <p class="mt-5 text-lg leading-relaxed text-holz-200">
-              {geschichte.data.beschreibung}
+            <p class="mt-5 text-lg leading-relaxed text-wood-200">
+              {history.data.description}
             </p>
             <a href="/geschichte/" class="btn-secondary mt-8">
               Die ganze Geschichte
@@ -157,22 +157,22 @@ const geschichte = (await getCollection('geschichte')).sort(
     events.length > 0 && (
       <section class="container-page mt-24">
         <SectionHeading
-          eyebrow={veranstaltungenText.eyebrow}
-          titel={veranstaltungenText.titel}
-          text={veranstaltungenText.text}
-          zentriert
+          eyebrow={eventsText.eyebrow}
+          title={eventsText.title}
+          text={eventsText.text}
+          centered
         />
         <div class="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {events.map((event) => (
             <EventCard
-              titel={event.data.titel}
-              datum={event.data.datum}
-              datumBis={event.data.datumBis}
-              uhrzeit={event.data.uhrzeit}
-              beschreibung={event.data.beschreibung}
-              bild={event.data.bild}
-              bildAlt={event.data.bildAlt}
-              abgesagt={event.data.abgesagt}
+              title={event.data.title}
+              date={event.data.date}
+              endDate={event.data.endDate}
+              time={event.data.time}
+              description={event.data.description}
+              image={event.data.image}
+              imageAlt={event.data.imageAlt}
+              cancelled={event.data.cancelled}
               href={`/veranstaltungen/${event.id}/`}
             />
           ))}
@@ -192,23 +192,23 @@ const geschichte = (await getCollection('geschichte')).sort(
       <section class="container-page mt-24">
         <SectionHeading
           eyebrow="Unterwegs"
-          titel="Aktivitäten rund um den Hegerberg"
+          title="Aktivitäten rund um den Hegerberg"
           text="Von Forststraßen fürs Rad über ruhige Waldwege zum Wandern. Alle Touren gibt es als GPX-Datei zum Mitnehmen aufs Navi oder Handy."
-          zentriert
+          centered
         />
         <div class="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {touren.map((tour) => (
-              <div data-art={tour.eintrag.data.art} class="contents">
+          {tours.map((tour) => (
+              <div data-type={tour.entry.data.type} class="contents">
                 <TourCard
                   href={tour.href}
-                  titel={tour.eintrag.data.titel}
-                  art={tour.eintrag.data.art}
-                  schwierigkeit={tour.eintrag.data.schwierigkeit}
-                  beschreibung={tour.eintrag.data.beschreibung}
-                  bild={tour.eintrag.data.bild}
-                  bildAlt={tour.eintrag.data.bildAlt}
-                  daten={tour.daten}
-                  dauerMinuten={tour.dauerMinuten}
+                  title={tour.entry.data.title}
+                  type={tour.entry.data.type}
+                  difficulty={tour.entry.data.difficulty}
+                  description={tour.entry.data.description}
+                  image={tour.entry.data.image}
+                  imageAlt={tour.entry.data.imageAlt}
+                  data={tour.data}
+                  durationMinutes={tour.durationMinutes}
                 />
               </div>
             ))}

@@ -46,16 +46,16 @@ Dieselben Schritte gibt es als `bun run dev` / `build` / `preview` / `cms`.
 
 | Bereich                     | Adresse             | Inhalt kommt aus          | Stand |
 | --------------------------- | ------------------- | ------------------------- | ----- |
-| **Startseite**              | `/`                 | `startseite/` + die übrigen Collections | live |
+| **Startseite**              | `/`                 | `home/` + die übrigen Collections | live |
 | **Veranstaltungen**         | `/veranstaltungen/` | `events/`                 | live |
 | **Push-Benachrichtigungen** | `/veranstaltungen/` | –                         | live, [Einrichtung nötig](#push-benachrichtigungen) |
-| **Aktivitäten** (Touren)    | `/aktivitaeten/`    | `touren/` + GPX-Dateien   | live |
-| **Öffnungszeiten**          | `/oeffnungszeiten/` | `oeffnungszeiten/`        | live |
+| **Aktivitäten** (Touren)    | `/aktivitaeten/`    | `tours/` + GPX-Dateien    | live |
+| **Öffnungszeiten**          | `/oeffnungszeiten/` | `opening-hours/`          | live |
 | **Kontakt & Anfahrt**       | `/kontakt/`         | `src/lib/site.ts`         | live |
 | **Mitglied werden**         | `/kontakt/`, `/`    | Formular → E-Mail         | live |
-| **Galerie**                 | `/galerie/`         | `galerie/`                | live, **noch keine Bilder gepflegt** |
-| **Geschichte**              | `/geschichte/`      | `geschichte/`             | live, **noch keine Kapitel gepflegt** |
-| **Speisekarte**             | `/speisekarte/` (wird nicht gebaut) | `speisekarte/`  | **derzeit deaktiviert**, [siehe unten](#speisekarte--derzeit-deaktiviert) |
+| **Galerie**                 | `/galerie/`         | `gallery/`                | live, **noch keine Bilder gepflegt** |
+| **Geschichte**              | `/geschichte/`      | `history/`                | live, **noch keine Kapitel gepflegt** |
+| **Speisekarte**             | `/speisekarte/` (wird nicht gebaut) | `menu/`         | **derzeit deaktiviert**, [siehe unten](#speisekarte--derzeit-deaktiviert) |
 | **Impressum & Datenschutz** | `/impressum/`, `/datenschutz/` | Vorlagen im Code | live |
 | **Redaktionssystem**        | `/admin/`           | Decap CMS + GitHub-OAuth  | live |
 
@@ -64,7 +64,7 @@ Dieselben Schritte gibt es als `bun run dev` / `build` / `preview` / `cms`.
 - **Startseite** – Titelbild, Begrüßung, kompaktes Öffnungszeiten-Widget,
   Geschichte-Teaser, die drei nächsten Veranstaltungen, alle Touren und das
   Formular „Mitglied werden“. Die redaktionellen Texte der Abschnitte stehen in
-  `src/content/startseite/index.md`.
+  `src/content/home/index.md`.
 - **Veranstaltungen** – Übersicht mit kommenden Terminen, darunter „Bereits
   gewesen“ (die letzten sechs). Jede Veranstaltung hat eine Detailseite mit
   Fließtext und optionaler Bildergalerie. Abgesagte Termine werden nicht
@@ -82,15 +82,15 @@ Dieselben Schritte gibt es als `bun run dev` / `build` / `preview` / `cms`.
   Live-Status „Jetzt geöffnet“ / „Derzeit geschlossen“.
 - **Kontakt** – Anfahrt, Kontaktdaten und eine OpenStreetMap-Karte, die erst
   auf Klick geladen wird.
-- **Mitglied werden** – Formular, das über `api/mitgliedschaft.php` und
+- **Mitglied werden** – Formular, das über `api/membership.php` und
   PHPMailer zwei E-Mails verschickt: die Anfrage ans Schutzhaus und eine
   Bestätigung an die anfragende Person. Mit JavaScript prüft zod die Eingaben
   vorab, ohne JavaScript greift der normale POST samt Weiterleitung.
 - **Galerie** – Raster nach Kategorien mit Großansicht. Collection, CMS-Maske
-  und Seite stehen bereit, `src/content/galerie/` ist aber noch leer – die
+  und Seite stehen bereit, `src/content/gallery/` ist aber noch leer – die
   Seite bleibt deshalb vorerst ohne Bilder.
 - **Geschichte** – Kapitel mit Jahr, Bild und Fließtext. Ebenfalls fertig
-  angelegt, aber `src/content/geschichte/` ist noch leer. Solange das so ist,
+  angelegt, aber `src/content/history/` ist noch leer. Solange das so ist,
   blendet die Startseite auch den Geschichte-Teaser aus.
 
 Für die beiden leeren Collections meldet der Build
@@ -108,9 +108,9 @@ wurde sie an drei Stellen:
 | `src/lib/site.ts`                 | Navigationseintrag auskommentiert               |
 | `src/pages/index.astro`           | Block „Hausspezialitäten“ auskommentiert        |
 
-Unberührt bleiben die 17 Einträge in `src/content/speisekarte/`, das Schema in
-`src/content.config.ts`, die CMS-Maske und die Komponenten `SpeiseEintrag` und
-`AllergenLegende`. Zum Wiedereinschalten also: Datei in `speisekarte.astro`
+Unberührt bleiben die 17 Einträge in `src/content/menu/`, das Schema in
+`src/content.config.ts`, die CMS-Maske und die Komponenten `MenuItem` und
+`AllergenLegend`. Zum Wiedereinschalten also: Datei in `speisekarte.astro`
 umbenennen und die beiden auskommentierten Blöcke wieder aktivieren – inklusive
 Allergen-Kennzeichnung A–R nach österreichischem Codex-Kapitel B 33.
 
@@ -120,13 +120,13 @@ Allergen-Kennzeichnung A–R nach österreichischem Codex-Kapitel B 33.
 src/
 ├── components/       Header, Footer, Hero, Karten, Höhenprofil, Formulare …
 ├── content/          Redaktionelle Inhalte als Markdown
-│   ├── startseite/       Texte der Abschnitte auf /
+│   ├── home/             Texte der Abschnitte auf /
 │   ├── events/           Veranstaltungen
-│   ├── touren/           Mountainbike- und Wandertouren
-│   ├── oeffnungszeiten/  Ein Eintrag je Wochentag
-│   ├── speisekarte/      Speisen und Getränke (Seite derzeit deaktiviert)
-│   ├── geschichte/       Kapitel (noch leer)
-│   └── galerie/          Fotos (noch nicht angelegt)
+│   ├── tours/            Mountainbike- und Wandertouren
+│   ├── opening-hours/    Ein Eintrag je Wochentag
+│   ├── menu/             Speisen und Getränke (Seite derzeit deaktiviert)
+│   ├── history/          Kapitel (noch leer)
+│   └── gallery/          Fotos (noch nicht angelegt)
 ├── content.config.ts Zod-Schemas der Content Collections
 ├── layouts/          BaseLayout mit SEO-Meta, JSON-LD und Web-Manifest
 ├── lib/              Stammdaten, GPX-Auswertung, Öffnungszeiten-Logik, …
@@ -147,7 +147,7 @@ public/
 └── robots.txt
 
 scripts/
-└── veranstaltung-melden.mjs   Meldet neue Veranstaltungen an den Push-Endpunkt
+└── notify-event.mjs   Meldet neue Veranstaltungen an den Push-Endpunkt
 ```
 
 Die CMS-Oberfläche liegt unter `src/pages/admin/index.astro` statt als statische
@@ -182,7 +182,7 @@ und eine geleerte Liste kommt als `null` an (Fallback auf `[]` bei
 
 Das Widget auf Start- und Öffnungszeiten-Seite zeigt „Jetzt geöffnet“ bzw.
 „Derzeit geschlossen“. Der Status wird **clientseitig** in der Zeitzone
-`Europe/Vienna` berechnet (`src/components/OeffnungszeitenWidget.astro`), damit
+`Europe/Vienna` berechnet (`src/components/OpeningHoursWidget.astro`), damit
 er trotz statischem Build stimmt. Ohne JavaScript bleibt die Wochentabelle
 sichtbar, nur das Status-Badge fehlt.
 
@@ -192,9 +192,9 @@ Eine neue Tour braucht nur eine GPX-Datei; alles Weitere entsteht beim Build:
 
 - `src/lib/gpx.ts` liest die Datei aus `public/gpx/`, berechnet Distanz,
   Höhenmeter, Dauer und Profil und vereinfacht den Linienzug für die Karte.
-- Die Dauer lässt sich im CMS mit `dauerMinuten` überschreiben, wenn die
+- Die Dauer lässt sich im CMS mit `durationMinutes` überschreiben, wenn die
   Schätzung nicht passt.
-- Die Karte (`TourKarte.astro`, Leaflet) lädt ihre Kacheln erst, wenn sie ins
+- Die Karte (`TourMap.astro`, Leaflet) lädt ihre Kacheln erst, wenn sie ins
   Sichtfeld scrollt. Ohne JavaScript wird stattdessen der GPX-Download
   angeboten.
 
@@ -238,7 +238,7 @@ https://hegerberg.at/oauth
 PHPMailer (Kontaktformular) und minishlink/web-push (Benachrichtigungen) liegen
 **nicht** im Repository, sondern nur auf dem Server unter
 `public_html/vendor/`. Hochgeladen werden sie über den manuellen Workflow
-**Actions → „PHP-Bibliotheken hochladen“**.
+**Actions → „Upload PHP libraries“**.
 
 Beide stecken bewusst in einem gemeinsamen Composer-Projekt: Zwei getrennte
 Projekte würden sich in `vendor/` den Autoloader überschreiben, und die jeweils
@@ -255,11 +255,11 @@ Wird über `/admin/` eine neue Veranstaltung angelegt, bekommen alle Geräte, di
 das abonniert haben, eine Mitteilung. Der Weg dorthin:
 
 1. **Deploy** läuft wie immer und stellt die neue Seite online.
-2. **„Veranstaltung melden“** startet danach automatisch
+2. **„Notify about events“** startet danach automatisch
    (`workflow_run`), vergleicht den Commit mit seinem Vorgänger und sammelt
    alle **neu hinzugekommenen** Dateien unter `src/content/events/`.
-3. `scripts/veranstaltung-melden.mjs` schickt Titel, Datum und Kurzbeschreibung
-   an `https://hegerberg.at/api/push-versand.php`.
+3. `scripts/notify-event.mjs` schickt Titel, Datum und Kurzbeschreibung
+   an `https://hegerberg.at/api/push-send.php`.
 4. Das PHP-Script verschlüsselt die Nachricht für jedes gespeicherte Gerät und
    übergibt sie an die Push-Dienste von Google, Mozilla und Apple.
 
@@ -274,17 +274,17 @@ Veranstaltung, die schon beim Anlegen als *abgesagt* markiert ist, wird
 
 | Datei                                        | Aufgabe                                                      |
 | -------------------------------------------- | ------------------------------------------------------------ |
-| `src/components/PushAnmeldung.astro`         | Ein-/Ausschalter auf `/veranstaltungen/`                       |
+| `src/components/PushSignup.astro`         | Ein-/Ausschalter auf `/veranstaltungen/`                       |
 | `public/sw.js`                               | Service Worker: zeigt die Mitteilung, öffnet die Detailseite   |
 | `public/api/push.php`                        | An- und Abmeldung der Geräte                                   |
-| `public/api/push-versand.php`                | Versand, nur mit `PUSH_VERSAND_TOKEN` erreichbar               |
-| `public/api/push-speicher.php`               | Konfiguration und Ablage, von beiden Endpunkten genutzt        |
-| `scripts/veranstaltung-melden.mjs`           | Baut die Nachricht aus dem Frontmatter                         |
-| `.github/workflows/veranstaltung-melden.yml` | Trigger nach erfolgreichem Deploy                              |
+| `public/api/push-send.php`                | Versand, nur mit `PUSH_VERSAND_TOKEN` erreichbar               |
+| `public/api/push-storage.php`               | Konfiguration und Ablage, von beiden Endpunkten genutzt        |
+| `scripts/notify-event.mjs`           | Baut die Nachricht aus dem Frontmatter                         |
+| `.github/workflows/notify-event.yml` | Trigger nach erfolgreichem Deploy                              |
 
 ### Wo die Abonnenten liegen
 
-In `push-daten/abos.json` – eine Ebene **über** `public_html`, damit die Datei
+In `push-daten/subscriptions.json` – eine Ebene **über** `public_html`, damit die Datei
 über den Browser nicht erreichbar ist. Lässt sich das Verzeichnis dort nicht
 anlegen, weicht das Script auf `public_html/api/push-daten/` aus und sperrt es
 per `.htaccess`. Angelegt wird es beim ersten Zugriff von selbst.
@@ -346,7 +346,7 @@ Fehlt eines der drei Secrets, läuft der Deploy trotzdem grün durch und meldet
 nur eine Warnung – die Website funktioniert dann vollständig, lediglich die
 Benachrichtigungen bleiben aus.
 
-**4. Workflow „PHP-Bibliotheken hochladen“** einmal starten, damit web-push auf
+**4. Workflow „Upload PHP libraries“** einmal starten, damit web-push auf
 dem Server liegt.
 
 **5. Deploy anstoßen** (Push auf `main` oder Actions → Deploy → Run workflow).
@@ -356,20 +356,20 @@ Dabei entsteht `api/push-config.php` aus den Secrets.
 von Hand eine Nachricht schicken:
 
 ```bash
-curl -X POST https://hegerberg.at/api/push-versand.php \
+curl -X POST https://hegerberg.at/api/push-send.php \
   -H "Authorization: Bearer $PUSH_VERSAND_TOKEN" \
   -H 'Content-Type: application/json' \
-  -d '{"titel":"Testnachricht","text":"Sieht gut aus.","url":"/veranstaltungen/"}'
+  -d '{"title":"Testnachricht","text":"Sieht gut aus.","url":"/veranstaltungen/"}'
 ```
 
-Ohne `schluessel` im Aufruf greift die Wiederholungssperre nicht – so lässt sich
+Ohne `key` im Aufruf greift die Wiederholungssperre nicht – so lässt sich
 beliebig oft testen. Die Antwort nennt Empfänger, Zustellungen und die Zahl der
 aufgeräumten Geräte.
 
 ### Wiederholungssperre
 
-`api/push-versand.php` merkt sich jeden versendeten Slug in
-`push-daten/versendet.json` (die letzten 200). Damit löst weder ein von Hand
+`api/push-send.php` merkt sich jeden versendeten Slug in
+`push-daten/sent.json` (die letzten 200). Damit löst weder ein von Hand
 wiederholter Deploy noch ein neuer Lauf des Melde-Workflows eine zweite
 Nachricht zur selben Veranstaltung aus.
 
@@ -404,7 +404,7 @@ Sitemap und lässt `/admin/` bewusst aus.
 - Die Karten auf den **Tour-Detailseiten** laden ihre Kacheln dagegen
   automatisch, sobald sie ins Sichtfeld scrollen – dabei geht die IP-Adresse an
   OpenStreetMap. Wer das auch dort erst nach Zustimmung möchte, müsste
-  `TourKarte.astro` auf denselben Klick-Mechanismus umstellen wie die
+  `TourMap.astro` auf denselben Klick-Mechanismus umstellen wie die
   Kontaktseite.
 - Push-Benachrichtigungen werden nur nach ausdrücklichem Einschalten und
   Browser-Erlaubnis abonniert. Gespeichert wird allein die vom Browser erzeugte

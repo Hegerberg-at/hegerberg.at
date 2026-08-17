@@ -3,290 +3,290 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 /**
- * Auswertung der GPX-Dateien aus `public/gpx/`.
+ * Evaluation of the GPX files in `public/gpx/`.
  *
- * Die Dateien werden ausschließlich beim Build gelesen – Distanz, Höhenmeter
- * und Profil landen fertig berechnet im HTML. Im Browser wird nur noch die
- * vereinfachte Linie für die Karte gebraucht, nicht die ganze GPX-Datei.
+ * The files are read at build time only – distance, elevation gain and the
+ * profile end up pre-calculated in the HTML. In the browser only the
+ * simplified line is needed for the map, not the whole GPX file.
  */
 
-export interface Punkt {
+export interface Point {
   lat: number;
   lng: number;
-  /** Seehöhe in Metern. */
+  /** Elevation in metres. */
   ele: number;
 }
 
-export interface Profilpunkt {
-  /** Zurückgelegte Strecke ab Start, in Kilometern. */
+export interface ProfilePoint {
+  /** Distance covered from the start, in kilometres. */
   km: number;
   ele: number;
 }
 
-export interface Tourdaten {
-  /** Vereinfachter Linienzug für die Karte: [lat, lng]. */
-  linie: [number, number][];
-  distanzKm: number;
-  aufstieg: number;
-  abstieg: number;
-  hoeheMin: number;
-  hoeheMax: number;
-  /** Südwest- und Nordost-Ecke für das Einpassen der Karte. */
+export interface TourData {
+  /** Simplified polyline for the map: [lat, lng]. */
+  line: [number, number][];
+  distanceKm: number;
+  ascent: number;
+  descent: number;
+  elevationMin: number;
+  elevationMax: number;
+  /** South-west and north-east corner for fitting the map. */
   bounds: [[number, number], [number, number]];
-  profil: Profilpunkt[];
-  /** Geschätzte Dauer in Minuten (siehe `schaetzeDauer`). */
-  dauerMinuten: number;
-  /** True, wenn Start und Ziel praktisch zusammenfallen. */
-  rundtour: boolean;
+  profile: ProfilePoint[];
+  /** Estimated duration in minutes (see `estimateDuration`). */
+  durationMinutes: number;
+  /** True when start and finish practically coincide. */
+  roundTrip: boolean;
 }
 
-export type Tourart = 'Mountainbike' | 'Wanderung';
+export type TourType = 'Mountainbike' | 'Wanderung';
 
-const ERDRADIUS = 6_371_000;
+const EARTH_RADIUS = 6_371_000;
 
-/** Höhenrauschen unterhalb dieser Schwelle zählt nicht als Auf-/Abstieg. */
-const HOEHEN_SCHWELLE = 4;
+/** Elevation noise below this threshold does not count as ascent/descent. */
+const ELEVATION_THRESHOLD = 4;
 
-/** Toleranz der Linienvereinfachung für die Karte, in Metern. */
-const VEREINFACHUNG = 6;
+/** Tolerance of the line simplification for the map, in metres. */
+const SIMPLIFICATION = 6;
 
-/** Stützstellen des Höhenprofils. */
-const PROFIL_PUNKTE = 140;
+/** Sample points of the elevation profile. */
+const PROFILE_POINTS = 140;
 
-const zwischenspeicher = new Map<string, Tourdaten>();
+const cache = new Map<string, TourData>();
 
-export function abstandMeter(a: Punkt, b: Punkt): number {
-  const zuBogen = Math.PI / 180;
-  const dLat = (b.lat - a.lat) * zuBogen;
-  const dLng = (b.lng - a.lng) * zuBogen;
-  const mitte = (a.lat + b.lat) / 2 * zuBogen;
-  const x = dLng * Math.cos(mitte);
-  return Math.hypot(x, dLat) * ERDRADIUS;
+export function distanceMeters(a: Point, b: Point): number {
+  const toRadians = Math.PI / 180;
+  const dLat = (b.lat - a.lat) * toRadians;
+  const dLng = (b.lng - a.lng) * toRadians;
+  const middle = (a.lat + b.lat) / 2 * toRadians;
+  const x = dLng * Math.cos(middle);
+  return Math.hypot(x, dLat) * EARTH_RADIUS;
 }
 
 /**
- * Minimal-Parser für GPX 1.0/1.1. Gelesen werden Track-Punkte, ersatzweise
- * Routen-Punkte – mehr braucht keine der hier verwendeten Dateien.
+ * Minimal parser for GPX 1.0/1.1. Track points are read, route points as a
+ * fallback – none of the files used here needs more.
  */
-export function parseGpx(xml: string): Punkt[] {
+export function parseGpx(xml: string): Point[] {
   const tag = /<(trkpt|rtept)\b[^>]*\blat="([-\d.]+)"[^>]*\blon="([-\d.]+)"[^>]*?(\/?)>/gi;
-  const trackpunkte: Punkt[] = [];
-  const routenpunkte: Punkt[] = [];
+  const trackPoints: Point[] = [];
+  const routePoints: Point[] = [];
 
-  let treffer: RegExpExecArray | null;
-  while ((treffer = tag.exec(xml)) !== null) {
-    const [voll, art, lat, lng, selbstschliessend] = treffer;
+  let match: RegExpExecArray | null;
+  while ((match = tag.exec(xml)) !== null) {
+    const [full, kind, lat, lng, selfClosing] = match;
     let ele = 0;
-    if (!selbstschliessend) {
-      // Die Seehöhe steht im Rumpf des Punktes, also vor dem schließenden Tag.
-      const rumpf = xml.slice(
-        treffer.index + voll.length,
-        treffer.index + voll.length + 400,
+    if (!selfClosing) {
+      // The elevation sits in the body of the point, i.e. before the closing tag.
+      const body = xml.slice(
+        match.index + full.length,
+        match.index + full.length + 400,
       );
-      const hoehe = /<ele>\s*([-\d.]+)\s*<\/ele>/i.exec(rumpf);
-      if (hoehe) ele = Number(hoehe[1]);
+      const elevation = /<ele>\s*([-\d.]+)\s*<\/ele>/i.exec(body);
+      if (elevation) ele = Number(elevation[1]);
     }
 
-    const punkt = { lat: Number(lat), lng: Number(lng), ele };
-    if (!Number.isFinite(punkt.lat) || !Number.isFinite(punkt.lng)) continue;
-    (art.toLowerCase() === 'trkpt' ? trackpunkte : routenpunkte).push(punkt);
+    const point = { lat: Number(lat), lng: Number(lng), ele };
+    if (!Number.isFinite(point.lat) || !Number.isFinite(point.lng)) continue;
+    (kind.toLowerCase() === 'trkpt' ? trackPoints : routePoints).push(point);
   }
 
-  return trackpunkte.length > 0 ? trackpunkte : routenpunkte;
+  return trackPoints.length > 0 ? trackPoints : routePoints;
 }
 
-/** Ramer-Douglas-Peucker, damit die Karte nicht tausende Punkte laden muss. */
-function vereinfache(punkte: Punkt[], toleranz: number): Punkt[] {
-  if (punkte.length < 3) return punkte;
+/** Ramer-Douglas-Peucker, so the map need not load thousands of points. */
+function simplify(points: Point[], tolerance: number): Point[] {
+  if (points.length < 3) return points;
 
-  const behalten = new Uint8Array(punkte.length);
-  behalten[0] = 1;
-  behalten[punkte.length - 1] = 1;
+  const keep = new Uint8Array(points.length);
+  keep[0] = 1;
+  keep[points.length - 1] = 1;
 
-  const stapel: [number, number][] = [[0, punkte.length - 1]];
-  while (stapel.length > 0) {
-    const [start, ende] = stapel.pop()!;
-    if (ende - start < 2) continue;
+  const stack: [number, number][] = [[0, points.length - 1]];
+  while (stack.length > 0) {
+    const [start, end] = stack.pop()!;
+    if (end - start < 2) continue;
 
-    const a = punkte[start];
-    const b = punkte[ende];
-    const laenge = abstandMeter(a, b);
+    const a = points[start];
+    const b = points[end];
+    const length = distanceMeters(a, b);
 
-    let maxAbstand = -1;
+    let maxDistance = -1;
     let maxIndex = start;
-    for (let i = start + 1; i < ende; i++) {
-      const p = punkte[i];
-      let abstand: number;
-      if (laenge === 0) {
-        abstand = abstandMeter(a, p);
+    for (let i = start + 1; i < end; i++) {
+      const p = points[i];
+      let distance: number;
+      if (length === 0) {
+        distance = distanceMeters(a, p);
       } else {
-        // Abstand Punkt–Strecke in einer lokal ebenen Näherung.
-        const zuMeterY = 111_320;
-        const zuMeterX = 111_320 * Math.cos((a.lat * Math.PI) / 180);
+        // Distance point-to-segment in a locally flat approximation.
+        const toMetersY = 111_320;
+        const toMetersX = 111_320 * Math.cos((a.lat * Math.PI) / 180);
         const ax = 0;
         const ay = 0;
-        const bx = (b.lng - a.lng) * zuMeterX;
-        const by = (b.lat - a.lat) * zuMeterY;
-        const px = (p.lng - a.lng) * zuMeterX;
-        const py = (p.lat - a.lat) * zuMeterY;
+        const bx = (b.lng - a.lng) * toMetersX;
+        const by = (b.lat - a.lat) * toMetersY;
+        const px = (p.lng - a.lng) * toMetersX;
+        const py = (p.lat - a.lat) * toMetersY;
         const t = Math.max(
           0,
           Math.min(1, ((px - ax) * (bx - ax) + (py - ay) * (by - ay)) / (bx * bx + by * by)),
         );
-        abstand = Math.hypot(px - t * bx, py - t * by);
+        distance = Math.hypot(px - t * bx, py - t * by);
       }
-      if (abstand > maxAbstand) {
-        maxAbstand = abstand;
+      if (distance > maxDistance) {
+        maxDistance = distance;
         maxIndex = i;
       }
     }
 
-    if (maxAbstand > toleranz) {
-      behalten[maxIndex] = 1;
-      stapel.push([start, maxIndex], [maxIndex, ende]);
+    if (maxDistance > tolerance) {
+      keep[maxIndex] = 1;
+      stack.push([start, maxIndex], [maxIndex, end]);
     }
   }
 
-  return punkte.filter((_, i) => behalten[i] === 1);
+  return points.filter((_, i) => keep[i] === 1);
 }
 
 /**
- * Gehzeit nach der Regel des Alpenvereins (Auf- und Abstiegszeit werden zur
- * Hälfte addiert), fürs Rad eine einfache Summe aus Rollzeit und Steigzeit.
+ * Walking time following the Alpenverein rule (ascent and descent times are
+ * added at half weight); for the bike a simple sum of rolling and climbing.
  */
-export function schaetzeDauer(
-  art: Tourart,
-  distanzKm: number,
-  aufstieg: number,
-  abstieg: number,
+export function estimateDuration(
+  type: TourType,
+  distanceKm: number,
+  ascent: number,
+  descent: number,
 ): number {
-  if (art === 'Mountainbike') {
-    const rollen = (distanzKm / 13) * 60;
-    const steigen = (aufstieg / 500) * 60;
-    return Math.round((rollen + steigen) / 5) * 5;
+  if (type === 'Mountainbike') {
+    const rolling = (distanceKm / 13) * 60;
+    const climbing = (ascent / 500) * 60;
+    return Math.round((rolling + climbing) / 5) * 5;
   }
 
-  const waagrecht = (distanzKm / 4) * 60;
-  const senkrecht = (aufstieg / 400 + abstieg / 800) * 60;
-  const minuten = Math.max(waagrecht, senkrecht) + Math.min(waagrecht, senkrecht) / 2;
-  return Math.round(minuten / 5) * 5;
+  const horizontal = (distanceKm / 4) * 60;
+  const vertical = (ascent / 400 + descent / 800) * 60;
+  const minutes = Math.max(horizontal, vertical) + Math.min(horizontal, vertical) / 2;
+  return Math.round(minutes / 5) * 5;
 }
 
-export function formatDauer(minuten: number): string {
-  const stunden = Math.floor(minuten / 60);
-  const rest = minuten % 60;
-  if (stunden === 0) return `${rest} min`;
-  return `${stunden}:${String(rest).padStart(2, '0')} h`;
+export function formatDuration(minutes: number): string {
+  const hours = Math.floor(minutes / 60);
+  const rest = minutes % 60;
+  if (hours === 0) return `${rest} min`;
+  return `${hours}:${String(rest).padStart(2, '0')} h`;
 }
 
-export function formatDistanz(km: number): string {
+export function formatDistance(km: number): string {
   return `${km.toLocaleString('de-AT', {
     minimumFractionDigits: 1,
     maximumFractionDigits: 1,
   })} km`;
 }
 
-function werteAus(punkte: Punkt[], art: Tourart): Tourdaten {
-  if (punkte.length < 2) {
+function evaluate(points: Point[], type: TourType): TourData {
+  if (points.length < 2) {
     throw new Error('GPX-Datei enthält weniger als zwei Punkte.');
   }
 
-  // Distanz und laufende Kilometrierung
-  const kilometrierung: number[] = [0];
-  let strecke = 0;
-  for (let i = 1; i < punkte.length; i++) {
-    strecke += abstandMeter(punkte[i - 1], punkte[i]);
-    kilometrierung.push(strecke);
+  // Distance and running chainage
+  const chainage: number[] = [0];
+  let travelled = 0;
+  for (let i = 1; i < points.length; i++) {
+    travelled += distanceMeters(points[i - 1], points[i]);
+    chainage.push(travelled);
   }
 
-  // Höhenmeter mit Schwellwert, damit GPS-Rauschen nicht mitgezählt wird.
-  let aufstieg = 0;
-  let abstieg = 0;
-  let referenz = punkte[0].ele;
-  for (const punkt of punkte) {
-    const differenz = punkt.ele - referenz;
-    if (differenz > HOEHEN_SCHWELLE) {
-      aufstieg += differenz;
-      referenz = punkt.ele;
-    } else if (differenz < -HOEHEN_SCHWELLE) {
-      abstieg -= differenz;
-      referenz = punkt.ele;
+  // Elevation gain with a threshold so GPS noise is not counted.
+  let ascent = 0;
+  let descent = 0;
+  let reference = points[0].ele;
+  for (const point of points) {
+    const difference = point.ele - reference;
+    if (difference > ELEVATION_THRESHOLD) {
+      ascent += difference;
+      reference = point.ele;
+    } else if (difference < -ELEVATION_THRESHOLD) {
+      descent -= difference;
+      reference = point.ele;
     }
   }
 
-  const hoehen = punkte.map((p) => p.ele);
-  const breiten = punkte.map((p) => p.lat);
-  const laengen = punkte.map((p) => p.lng);
+  const elevations = points.map((p) => p.ele);
+  const latitudes = points.map((p) => p.lat);
+  const longitudes = points.map((p) => p.lng);
 
-  // Profil: gleichmäßig über die Strecke verteilte Stützstellen.
-  const profil: Profilpunkt[] = [];
-  const schritt = strecke / (PROFIL_PUNKTE - 1);
-  let zeiger = 0;
-  for (let i = 0; i < PROFIL_PUNKTE; i++) {
-    const ziel = i * schritt;
-    while (zeiger < kilometrierung.length - 2 && kilometrierung[zeiger + 1] < ziel) {
-      zeiger++;
+  // Profile: sample points spread evenly across the route.
+  const profile: ProfilePoint[] = [];
+  const step = travelled / (PROFILE_POINTS - 1);
+  let cursor = 0;
+  for (let i = 0; i < PROFILE_POINTS; i++) {
+    const target = i * step;
+    while (cursor < chainage.length - 2 && chainage[cursor + 1] < target) {
+      cursor++;
     }
-    const a = punkte[zeiger];
-    const b = punkte[Math.min(zeiger + 1, punkte.length - 1)];
-    const spanne = kilometrierung[zeiger + 1] - kilometrierung[zeiger] || 1;
-    const anteil = Math.max(0, Math.min(1, (ziel - kilometrierung[zeiger]) / spanne));
-    profil.push({
-      km: Number((ziel / 1000).toFixed(3)),
-      ele: Math.round(a.ele + (b.ele - a.ele) * anteil),
+    const a = points[cursor];
+    const b = points[Math.min(cursor + 1, points.length - 1)];
+    const span = chainage[cursor + 1] - chainage[cursor] || 1;
+    const share = Math.max(0, Math.min(1, (target - chainage[cursor]) / span));
+    profile.push({
+      km: Number((target / 1000).toFixed(3)),
+      ele: Math.round(a.ele + (b.ele - a.ele) * share),
     });
   }
 
-  const distanzKm = Number((strecke / 1000).toFixed(1));
-  const gerundeterAufstieg = Math.round(aufstieg / 5) * 5;
-  const gerundeterAbstieg = Math.round(abstieg / 5) * 5;
+  const distanceKm = Number((travelled / 1000).toFixed(1));
+  const roundedAscent = Math.round(ascent / 5) * 5;
+  const roundedDescent = Math.round(descent / 5) * 5;
 
   return {
-    linie: vereinfache(punkte, VEREINFACHUNG).map(
+    line: simplify(points, SIMPLIFICATION).map(
       (p) => [Number(p.lat.toFixed(5)), Number(p.lng.toFixed(5))] as [number, number],
     ),
-    distanzKm,
-    aufstieg: gerundeterAufstieg,
-    abstieg: gerundeterAbstieg,
-    hoeheMin: Math.round(Math.min(...hoehen)),
-    hoeheMax: Math.round(Math.max(...hoehen)),
+    distanceKm,
+    ascent: roundedAscent,
+    descent: roundedDescent,
+    elevationMin: Math.round(Math.min(...elevations)),
+    elevationMax: Math.round(Math.max(...elevations)),
     bounds: [
-      [Math.min(...breiten), Math.min(...laengen)],
-      [Math.max(...breiten), Math.max(...laengen)],
+      [Math.min(...latitudes), Math.min(...longitudes)],
+      [Math.max(...latitudes), Math.max(...longitudes)],
     ],
-    profil,
-    dauerMinuten: schaetzeDauer(art, distanzKm, gerundeterAufstieg, gerundeterAbstieg),
-    rundtour: abstandMeter(punkte[0], punkte[punkte.length - 1]) < 250,
+    profile,
+    durationMinutes: estimateDuration(type, distanceKm, roundedAscent, roundedDescent),
+    roundTrip: distanceMeters(points[0], points[points.length - 1]) < 250,
   };
 }
 
 /**
- * Liest eine GPX-Datei aus `public/` und wertet sie aus. Der Pfad ist der
- * öffentliche Pfad aus dem CMS, also z. B. `/gpx/gipfelrunde.gpx`.
+ * Reads a GPX file from `public/` and evaluates it. The path is the public
+ * path coming from the CMS, e.g. `/gpx/gipfelrunde.gpx`.
  */
-export function ladeTourdaten(oeffentlicherPfad: string, art: Tourart): Tourdaten {
-  const schluessel = `${art}::${oeffentlicherPfad}`;
-  const bekannt = zwischenspeicher.get(schluessel);
-  if (bekannt) return bekannt;
+export function loadTourData(publicPath: string, type: TourType): TourData {
+  const key = `${type}::${publicPath}`;
+  const known = cache.get(key);
+  if (known) return known;
 
-  const relativ = oeffentlicherPfad.replace(/^\/+/, '');
-  // Beim Build läuft dieser Code gebündelt aus `dist/`, im Dev-Server aus
-  // `src/` – deshalb beide Kandidaten probieren.
-  const kandidaten = [
-    join(process.cwd(), 'public', relativ),
-    fileURLToPath(new URL(`../../public/${relativ}`, import.meta.url)),
+  const relative = publicPath.replace(/^\/+/, '');
+  // At build time this code runs bundled from `dist/`, in the dev server from
+  // `src/` – so try both candidates.
+  const candidates = [
+    join(process.cwd(), 'public', relative),
+    fileURLToPath(new URL(`../../public/${relative}`, import.meta.url)),
   ];
 
-  const datei = kandidaten.find((pfad) => existsSync(pfad));
-  if (!datei) {
+  const file = candidates.find((path) => existsSync(path));
+  if (!file) {
     throw new Error(
-      `GPX-Datei „${oeffentlicherPfad}“ wurde nicht gefunden (erwartet unter public${oeffentlicherPfad}).`,
+      `GPX-Datei „${publicPath}“ wurde nicht gefunden (erwartet unter public${publicPath}).`,
     );
   }
 
-  const xml = readFileSync(datei, 'utf8');
+  const xml = readFileSync(file, 'utf8');
 
-  const daten = werteAus(parseGpx(xml), art);
-  zwischenspeicher.set(schluessel, daten);
-  return daten;
+  const data = evaluate(parseGpx(xml), type);
+  cache.set(key, data);
+  return data;
 }

@@ -1,43 +1,42 @@
 <?php
 
 /**
- * Vorlage für die Zugangsdaten der Push-Benachrichtigungen.
+ * Template for the credentials of the push notifications.
  *
- * Im Normalbetrieb wird push-config.php beim Deploy automatisch aus den
- * GitHub-Secrets erzeugt (Environment „FTP“, siehe
- * .github/workflows/deploy.yml) – von Hand ist dort nichts zu tun.
+ * In normal operation push-config.php is generated automatically on deploy
+ * from the GitHub secrets (environment „FTP“, see
+ * .github/workflows/deploy.yml) – there is nothing to do by hand.
  *
- * Diese Vorlage ist nur für lokale Tests gedacht: kopieren nach
- * public/api/push-config.php, Werte eintragen. Die Kopie ist über .gitignore
- * vom Repository ausgeschlossen.
+ * This template is only meant for local tests: copy it to
+ * public/api/push-config.php and fill in the values. The copy is excluded from
+ * the repository via .gitignore.
  *
- * Die VAPID-Schlüssel identifizieren den Absender gegenüber den Push-Diensten
- * von Google, Mozilla und Apple. Sie werden einmalig erzeugt und danach nicht
- * mehr gewechselt – ein neues Schlüsselpaar macht alle bestehenden
- * Abonnements ungültig. Wie sie erzeugt werden, steht in der README unter
- * „Push-Benachrichtigungen“.
+ * The VAPID keys identify the sender towards the push services of Google,
+ * Mozilla and Apple. They are generated once and not rotated afterwards – a
+ * new key pair invalidates every existing subscription. How to generate them
+ * is described in the README under „Push-Benachrichtigungen“.
  */
 
 declare(strict_types=1);
 
 return [
-    // Öffentlicher VAPID-Schlüssel (base64url, 87 Zeichen). Wird über
-    // push.php?aktion=schluessel an den Browser ausgeliefert.
-    'vapid_oeffentlich' => 'HIER_DER_OEFFENTLICHE_VAPID_SCHLUESSEL',
+    // Public VAPID key (base64url, 87 characters). Delivered to the browser
+    // through push.php?action=key.
+    'vapid_public' => 'HIER_DER_OEFFENTLICHE_VAPID_SCHLUESSEL',
 
-    // Privater VAPID-Schlüssel (base64url, 43 Zeichen). Bleibt auf dem Server.
-    'vapid_privat' => 'HIER_DER_PRIVATE_VAPID_SCHLUESSEL',
+    // Private VAPID key (base64url, 43 characters). Stays on the server.
+    'vapid_private' => 'HIER_DER_PRIVATE_VAPID_SCHLUESSEL',
 
-    // Kontaktadresse für die Push-Dienste – „mailto:“ oder eine https-Adresse.
+    // Contact address for the push services – „mailto:“ or an https address.
     'vapid_subject' => 'mailto:office@hegerberg.at',
 
-    // Gemeinsames Geheimnis zwischen GitHub Action und push-versand.php.
-    // Erzeugen z. B. mit: openssl rand -hex 32
-    'versand_token' => 'HIER_DER_VERSAND_TOKEN',
+    // Shared secret between the GitHub Action and push-send.php.
+    // Generate e.g. with: openssl rand -hex 32
+    'send_token' => 'HIER_DER_VERSAND_TOKEN',
 
-    // Ablage der Abonnements. Standardmäßig eine Ebene über public_html, damit
-    // die Datei über den Browser nicht erreichbar ist. Lässt sich das
-    // Verzeichnis dort nicht anlegen, weicht das Script auf api/push-daten/
-    // aus (mit .htaccess-Sperre).
-    'datenverzeichnis' => __DIR__ . '/../../push-daten',
+    // Storage of the subscriptions. By default one level above public_html, so
+    // the file cannot be reached through the browser. If the directory cannot
+    // be created there, the script falls back to api/push-daten/ (with an
+    // .htaccess lock). The directory name stays as it is – it holds live data.
+    'data_dir' => __DIR__ . '/../../push-daten',
 ];

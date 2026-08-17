@@ -1,89 +1,89 @@
 ---
-import { formatDatum, formatDatumKurz, isoDatum } from '../lib/format';
+import { formatDate, formatDateShort, isoDate } from '../lib/format';
 
 interface Props {
-  titel: string;
-  datum: Date;
-  datumBis?: Date;
-  uhrzeit?: string;
-  beschreibung: string;
-  bild?: string;
-  bildAlt?: string;
-  abgesagt?: boolean;
-  /** Ziel der Detailseite. Ohne Angabe bleibt die Kachel nicht klickbar. */
+  title: string;
+  date: Date;
+  endDate?: Date;
+  time?: string;
+  description: string;
+  image?: string;
+  imageAlt?: string;
+  cancelled?: boolean;
+  /** Target of the detail page. Without it the card stays unclickable. */
   href?: string;
 }
 
 const {
-  titel,
-  datum,
-  datumBis,
-  uhrzeit,
-  beschreibung,
-  bild,
-  bildAlt,
-  abgesagt = false,
+  title,
+  date,
+  endDate,
+  time,
+  description,
+  image,
+  imageAlt,
+  cancelled = false,
   href,
 } = Astro.props;
 
-const datumsText = datumBis
-  ? `${formatDatumKurz(datum)} – ${formatDatumKurz(datumBis)}`
-  : formatDatum(datum);
+const dateText = endDate
+  ? `${formatDateShort(date)} – ${formatDateShort(endDate)}`
+  : formatDate(date);
 ---
 
 <article
   class:list={[
     'card group relative flex flex-col overflow-hidden transition',
-    abgesagt && 'opacity-70',
+    cancelled && 'opacity-70',
     href && 'hover:-translate-y-1 hover:shadow-lg focus-within:shadow-lg',
   ]}
 >
   {
-    bild ? (
+    image ? (
       <img
-        src={bild}
-        alt={bildAlt ?? ''}
+        src={image}
+        alt={imageAlt ?? ''}
         loading="lazy"
         decoding="async"
         class="w-full object-cover"
       />
     ) : (
       <div
-        class="aspect-[16/10] w-full bg-gradient-to-br from-wald-700 to-holz-800"
+        class="aspect-[16/10] w-full bg-gradient-to-br from-forest-700 to-wood-800"
         aria-hidden="true"
       />
     )
   }
 
   <div class="flex flex-1 flex-col p-6">
-    <p class="flex flex-wrap items-center gap-2 text-sm font-semibold text-wald-700">
-      <time datetime={isoDatum(datum)}>{datumsText}</time>
-      {uhrzeit && <span class="text-holz-600">· {uhrzeit} Uhr</span>}
+    <p class="flex flex-wrap items-center gap-2 text-sm font-semibold text-forest-700">
+      <time datetime={isoDate(date)}>{dateText}</time>
+      {time && <span class="text-wood-600">· {time} Uhr</span>}
     </p>
 
-    <h3 class="mt-2 text-xl font-bold text-holz-950">
-      {abgesagt && <span class="text-red-700">Abgesagt: </span>}
+    <h3 class="mt-2 text-xl font-bold text-wood-950">
+      {cancelled && <span class="text-red-700">Abgesagt: </span>}
       {
         href ? (
           <a
             href={href}
-            class="after:absolute after:inset-0 after:content-[''] group-hover:text-wald-800"
+            class="after:absolute after:inset-0 after:content-[''] group-hover:text-forest-800"
           >
-            {titel}
+            {title}
           </a>
         ) : (
-          titel
+          title
         )
       }
     </h3>
 
-    <p class="mt-3 flex-1 text-sm leading-relaxed text-holz-700">
-      {beschreibung}
+    <p class="mt-3 flex-1 text-sm leading-relaxed text-wood-700">
+      {description}
     </p>
 
     {
       href && (
-        <p class="mt-4 text-sm font-semibold text-wald-700">
+        <p class="mt-4 text-sm font-semibold text-forest-700">
           Details ansehen
           <span aria-hidden="true" class="ml-1 inline-block transition group-hover:translate-x-1">
             →

@@ -3,20 +3,20 @@ import { getCollection } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import SectionHeading from '../../components/SectionHeading.astro';
 import EventCard from '../../components/EventCard.astro';
-import PushAnmeldung from '../../components/PushAnmeldung.astro';
+import PushSignup from '../../components/PushSignup.astro';
 
-const heute = new Date();
-heute.setHours(0, 0, 0, 0);
+const today = new Date();
+today.setHours(0, 0, 0, 0);
 
-const alle = await getCollection('events');
+const all = await getCollection('events');
 
-const kommend = alle
-  .filter((event) => (event.data.datumBis ?? event.data.datum) >= heute)
-  .sort((a, b) => a.data.datum.getTime() - b.data.datum.getTime());
+const upcoming = all
+  .filter((event) => (event.data.endDate ?? event.data.date) >= today)
+  .sort((a, b) => a.data.date.getTime() - b.data.date.getTime());
 
-const vergangen = alle
-  .filter((event) => (event.data.datumBis ?? event.data.datum) < heute)
-  .sort((a, b) => b.data.datum.getTime() - a.data.datum.getTime())
+const past = all
+  .filter((event) => (event.data.endDate ?? event.data.date) < today)
+  .sort((a, b) => b.data.date.getTime() - a.data.date.getTime())
   .slice(0, 6);
 ---
 
@@ -28,28 +28,28 @@ const vergangen = alle
     <SectionHeading
       as="h1"
       eyebrow="Termine"
-      titel="Veranstaltungen am Hegerberg"
+      title="Veranstaltungen am Hegerberg"
     />
 
     {
-      kommend.length > 0 ? (
+      upcoming.length > 0 ? (
         <div class="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {kommend.map((event) => (
+          {upcoming.map((event) => (
             <EventCard
-              titel={event.data.titel}
-              datum={event.data.datum}
-              datumBis={event.data.datumBis}
-              uhrzeit={event.data.uhrzeit}
-              beschreibung={event.data.beschreibung}
-              bild={event.data.bild}
-              bildAlt={event.data.bildAlt}
-              abgesagt={event.data.abgesagt}
+              title={event.data.title}
+              date={event.data.date}
+              endDate={event.data.endDate}
+              time={event.data.time}
+              description={event.data.description}
+              image={event.data.image}
+              imageAlt={event.data.imageAlt}
+              cancelled={event.data.cancelled}
               href={`/veranstaltungen/${event.id}/`}
             />
           ))}
         </div>
       ) : (
-        <p class="mt-12 rounded-2xl border border-holz-200 bg-holz-100 p-8 text-holz-700">
+        <p class="mt-12 rounded-2xl border border-wood-200 bg-wood-100 p-8 text-wood-700">
           Derzeit sind keine Veranstaltungen angekündigt. Schauen Sie bald
           wieder vorbei.
         </p>
@@ -57,28 +57,28 @@ const vergangen = alle
     }
 
     <div class="mt-12">
-      <PushAnmeldung />
+      <PushSignup />
     </div>
 
     {
-      vergangen.length > 0 && (
+      past.length > 0 && (
         <section class="mt-20">
-          <h2 class="text-2xl font-bold text-holz-950">Bereits gewesen</h2>
-          <ul class="mt-6 divide-y divide-holz-200 border-y border-holz-200">
-            {vergangen.map((event) => (
+          <h2 class="text-2xl font-bold text-wood-950">Bereits gewesen</h2>
+          <ul class="mt-6 divide-y divide-wood-200 border-y border-wood-200">
+            {past.map((event) => (
               <li>
                 <a
                   href={`/veranstaltungen/${event.id}/`}
-                  class="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 py-4 transition hover:text-wald-800"
+                  class="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 py-4 transition hover:text-forest-800"
                 >
-                  <span class="font-semibold text-holz-800">
-                    {event.data.titel}
+                  <span class="font-semibold text-wood-800">
+                    {event.data.title}
                   </span>
                   <time
-                    datetime={event.data.datum.toISOString().slice(0, 10)}
-                    class="text-sm tabular-nums text-holz-600"
+                    datetime={event.data.date.toISOString().slice(0, 10)}
+                    class="text-sm tabular-nums text-wood-600"
                   >
-                    {event.data.datum.toLocaleDateString('de-AT', {
+                    {event.data.date.toLocaleDateString('de-AT', {
                       day: '2-digit',
                       month: '2-digit',
                       year: 'numeric',

@@ -1,0 +1,119 @@
+---
+import type { ProfilePoint } from '../lib/gpx';
+
+interface Props {
+  profile: ProfilePoint[];
+  elevationMin: number;
+  elevationMax: number;
+  distanceKm: number;
+  /** Tour name for the accessible label, if available. */
+  title?: string;
+}
+
+const { profile, elevationMin, elevationMax, distanceKm, title } = Astro.props;
+
+const WIDTH = 800;
+const HEIGHT = 220;
+const PADDING = { top: 16, right: 8, bottom: 28, left: 44 };
+
+// The value range is rounded to clean steps of 50 so the grid lines show round
+// elevations.
+const bottomM = Math.floor(elevationMin / 50) * 50;
+const topM = Math.ceil(elevationMax / 50) * 50;
+const span = Math.max(topM - bottomM, 50);
+
+const innerWidth = WIDTH - PADDING.left - PADDING.right;
+const innerHeight = HEIGHT - PADDING.top - PADDING.bottom;
+
+const x = (km: number) => PADDING.left + (km / Math.max(distanceKm, 0.1)) * innerWidth;
+const y = (ele: number) => PADDING.top + (1 - (ele - bottomM) / span) * innerHeight;
+
+const line = profile
+  .map((point, index) => `${index === 0 ? 'M' : 'L'}${x(point.km).toFixed(1)},${y(point.ele).toFixed(1)}`)
+  .join(' ');
+
+const area = `${line} L${x(profile[profile.length - 1].km).toFixed(1)},${(HEIGHT - PADDING.bottom).toFixed(1)} L${x(profile[0].km).toFixed(1)},${(HEIGHT - PADDING.bottom).toFixed(1)} Z`;
+
+/** 3–5 grid lines, depending on the elevation difference. */
+const stepM = span <= 150 ? 50 : span <= 400 ? 100 : 200;
+const gridLines: number[] = [];
+for (let value = bottomM; value <= topM; value += stepM) gridLines.push(value);
+
+const kmStep = distanceKm <= 6 ? 1 : distanceKm <= 15 ? 2 : 5;
+const kmMarks: number[] = [];
+for (let value = 0; value <= distanceKm; value += kmStep) kmMarks.push(value);
+
+const label = title
+  ? `Höhenprofil: ${title}`
+  : 'Höhenprofil der Tour';
+---
+
+<figure class="card overflow-hidden p-4 sm:p-6">
+  <figcaption class="text-sm font-semibold text-wood-900">Höhenprofil</figcaption>
+  <svg
+    viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
+    class="mt-3 h-auto w-full"
+    role="img"
+    aria-label={`${label} – von ${elevationMin} bis ${elevationMax} Meter auf ${distanceKm.toLocaleString('de-AT', { maximumFractionDigits: 1 })} Kilometern.`}
+  >
+    <defs>
+      <linearGradient id="elevation-gradient" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#4c7c52" stop-opacity="0.55"></stop>
+        <stop offset="100%" stop-color="#4c7c52" stop-opacity="0.05"></stop>
+      </linearGradient>
+    </defs>
+
+    {
+      gridLines.map((value) => (
+        <g>
+          <line
+            x1={PADDING.left}
+            x2={WIDTH - PADDING.right}
+            y1={y(value)}
+            y2={y(value)}
+            stroke="#e4d2ba"
+            stroke-width="1"
+          />
+          <text
+            x={PADDING.left - 8}
+            y={y(value) + 4}
+            text-anchor="end"
+            font-size="11"
+            fill="#7a4c32"
+          >
+            {value}
+          </text>
+        </g>
+      ))
+    }
+
+    {
+      kmMarks.map((value) => (
+        <text
+          x={x(value)}
+          y={HEIGHT - 8}
+          text-anchor={value === 0 ? 'start' : 'middle'}
+          font-size="11"
+          fill="#7a4c32"
+        >
+          {value} km
+        </text>
+      ))
+    }
+
+    <path d={area} fill="url(#elevation-gradient)"></path>
+    <path
+      d={line}
+      fill="none"
+      stroke="#2e4f34"
+      stroke-width="2.5"
+      stroke-linejoin="round"
+      stroke-linecap="round"
+      vector-effect="non-scaling-stroke"
+    ></path>
+  </svg>
+
+  <p class="mt-2 text-xs text-wood-600">
+    Tiefster Punkt {elevationMin} m · höchster Punkt {elevationMax} m
+  </p>
+</figure>

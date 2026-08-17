@@ -1,20 +1,20 @@
 ---
 import { navigation, site } from '../lib/site';
 
-const pfad = Astro.url.pathname;
+const path = Astro.url.pathname;
 
-const istAktiv = (href: string) =>
-  href === '/' ? pfad === '/' : pfad.startsWith(href);
+const isActive = (href: string) =>
+  href === '/' ? path === '/' : path.startsWith(href);
 ---
 
 <header
-  class="group/header sticky top-0 z-40 transition-colors duration-300 bg-holz-950/95 shadow-lg backdrop-blur"
+  class="group/header sticky top-0 z-40 transition-colors duration-300 bg-wood-950/95 shadow-lg backdrop-blur"
 
 >
   <div class="mx-3 flex items-center justify-between gap-4 py-4">
     <a
       href="/"
-      class="flex items-center gap-3 text-holz-50 transition hover:text-holz-200"
+      class="flex items-center gap-3 text-wood-50 transition hover:text-wood-200"
     >
       <img
         src="/favicon.png"
@@ -28,7 +28,7 @@ const istAktiv = (href: string) =>
           >Schutzhaus</span
         >
         <span
-          class="block text-[0.7rem] uppercase tracking-[0.25em] text-holz-300"
+          class="block text-[0.7rem] uppercase tracking-[0.25em] text-wood-300"
           >am Hegerberg</span
         >
       </span>
@@ -37,19 +37,19 @@ const istAktiv = (href: string) =>
     <nav aria-label="Hauptnavigation" class="hidden lg:block">
       <ul class="flex items-center gap-1">
         {
-          navigation.map((eintrag) => (
+          navigation.map((item) => (
             <li>
               <a
-                href={eintrag.href}
-                aria-current={istAktiv(eintrag.href) ? 'page' : undefined}
+                href={item.href}
+                aria-current={isActive(item.href) ? 'page' : undefined}
                 class:list={[
                   'rounded-full px-4 py-2 text-sm font-semibold transition',
-                  istAktiv(eintrag.href)
-                    ? 'bg-holz-50/15 text-holz-50'
-                    : 'text-holz-200 hover:bg-holz-50/10 hover:text-holz-50',
+                  isActive(item.href)
+                    ? 'bg-wood-50/15 text-wood-50'
+                    : 'text-wood-200 hover:bg-wood-50/10 hover:text-wood-50',
                 ]}
               >
-                {eintrag.label}
+                {item.label}
               </a>
             </li>
           ))
@@ -59,8 +59,8 @@ const istAktiv = (href: string) =>
 
     <div class="flex items-center gap-2">
       <a
-        href={`tel:${site.telefon.replace(/\s/g, '')}`}
-        class="hidden rounded-full bg-wald-600 px-5 py-2.5 text-sm font-semibold text-holz-50 transition hover:bg-wald-500 sm:inline-block"
+        href={`tel:${site.phone.replace(/\s/g, '')}`}
+        class="hidden rounded-full bg-forest-600 px-5 py-2.5 text-sm font-semibold text-wood-50 transition hover:bg-forest-500 sm:inline-block"
       >
         Tisch reservieren
       </a>
@@ -70,7 +70,7 @@ const istAktiv = (href: string) =>
         data-menu-toggle
         aria-expanded="false"
         aria-controls="mobile-menu"
-        class="grid size-11 place-items-center rounded-full text-holz-50 transition hover:bg-holz-50/10 lg:hidden"
+        class="grid size-11 place-items-center rounded-full text-wood-50 transition hover:bg-wood-50/10 lg:hidden"
       >
         <span class="sr-only">Menü öffnen</span>
         <svg
@@ -88,31 +88,31 @@ const istAktiv = (href: string) =>
     </div>
   </div>
 
-  <div id="mobile-menu" hidden class="border-t border-holz-50/10 lg:hidden">
+  <div id="mobile-menu" hidden class="border-t border-wood-50/10 lg:hidden">
     <nav aria-label="Navigation (mobil)" class="container-page py-4">
       <ul class="flex flex-col gap-1">
         {
-          navigation.map((eintrag) => (
+          navigation.map((item) => (
             <li>
               <a
-                href={eintrag.href}
-                aria-current={istAktiv(eintrag.href) ? 'page' : undefined}
+                href={item.href}
+                aria-current={isActive(item.href) ? 'page' : undefined}
                 class:list={[
                   'block rounded-xl px-4 py-3 text-base font-semibold transition',
-                  istAktiv(eintrag.href)
-                    ? 'bg-holz-50/15 text-holz-50'
-                    : 'text-holz-200 hover:bg-holz-50/10 hover:text-holz-50',
+                  isActive(item.href)
+                    ? 'bg-wood-50/15 text-wood-50'
+                    : 'text-wood-200 hover:bg-wood-50/10 hover:text-wood-50',
                 ]}
               >
-                {eintrag.label}
+                {item.label}
               </a>
             </li>
           ))
         }
         <li class="pt-2">
           <a
-            href={`tel:${site.telefon.replace(/\s/g, '')}`}
-            class="block rounded-xl bg-wald-600 px-4 py-3 text-center text-base font-semibold text-holz-50"
+            href={`tel:${site.phone.replace(/\s/g, '')}`}
+            class="block rounded-xl bg-forest-600 px-4 py-3 text-center text-base font-semibold text-wood-50"
           >
             Tisch reservieren
           </a>
@@ -128,10 +128,10 @@ const istAktiv = (href: string) =>
   const menu = document.getElementById('mobile-menu');
   toggle?.addEventListener('click', () => {
     if (!menu) return;
-    const offen = toggle.getAttribute('aria-expanded') === 'true';
-    toggle.setAttribute('aria-expanded', String(!offen));
-    menu.hidden = offen;
+    const open = toggle.getAttribute('aria-expanded') === 'true';
+    toggle.setAttribute('aria-expanded', String(!open));
+    menu.hidden = open;
     const label = toggle.querySelector('.sr-only');
-    if (label) label.textContent = offen ? 'Menü öffnen' : 'Menü schließen';
+    if (label) label.textContent = open ? 'Menü öffnen' : 'Menü schließen';
   });
 </script>

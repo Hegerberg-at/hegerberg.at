@@ -1,36 +1,35 @@
 <?php
 /**
- * OAuth-Proxy für Decap CMS (GitHub-Backend).
+ * OAuth proxy for Decap CMS (GitHub backend).
  *
- * Decap läuft komplett im Browser und committet über die GitHub-API. Nur der
- * Login braucht einen Server: GitHub tauscht den Autorisierungs-Code ausschließ-
- * lich gegen das client_secret in ein Token, und dieses Secret darf nicht in den
- * Browser gelangen. Genau diesen einen Tausch erledigt diese Datei.
+ * Decap runs entirely in the browser and commits through the GitHub API. Only
+ * the login needs a server: GitHub exchanges the authorization code for a
+ * token against the client_secret only, and that secret must never reach the
+ * browser. This file performs exactly that one exchange.
  *
- * Ablauf:
- *   1. Decap öffnet ein Popup auf /oauth/?provider=github&scope=repo
- *   2. Diese Datei leitet zu GitHub weiter (mit state gegen CSRF)
- *   3. GitHub schickt den Benutzer mit ?code=… hierher zurück
- *   4. Diese Datei tauscht code+secret gegen ein Token
- *   5. Das Token geht per postMessage an das Admin-Fenster, Popup schließt
+ * Flow:
+ *   1. Decap opens a popup on /oauth/?provider=github&scope=repo
+ *   2. this file redirects to GitHub (with state against CSRF)
+ *   3. GitHub sends the user back here with ?code=…
+ *   4. this file exchanges code+secret for a token
+ *   5. the token goes to the admin window via postMessage, the popup closes
  *
- * Die Zugangsdaten kommen aus config.php. Diese Datei liegt bewusst nicht im
- * Repository – sie wird bei jedem Deploy aus den GitHub-Secrets erzeugt
- * (siehe .github/workflows/deploy.yml). Für lokale Tests siehe
- * config.example.php.
+ * The credentials come from config.php. That file is deliberately not in the
+ * repository – it is generated from the GitHub secrets on every deploy (see
+ * .github/workflows/deploy.yml). For local tests see config.example.php.
  */
 
 declare(strict_types=1);
 
-/** Origin der Website – Ziel und einzig akzeptierte Quelle des postMessage. */
+/** Origin of the website – target and only accepted source of the postMessage. */
 const SITE_ORIGIN = 'https://hegerberg.at';
 const PROVIDER = 'github';
 
-$konfigDatei = __DIR__ . '/config.php';
-$konfig = is_readable($konfigDatei) ? require $konfigDatei : [];
+$configFile = __DIR__ . '/config.php';
+$config = is_readable($configFile) ? require $configFile : [];
 
-$clientId = (string) ($konfig['client_id'] ?? getenv('GITHUB_CLIENT_ID') ?: '');
-$clientSecret = (string) ($konfig['client_secret'] ?? getenv('GITHUB_CLIENT_SECRET') ?: '');
+$clientId = (string) ($config['client_id'] ?? getenv('GITHUB_CLIENT_ID') ?: '');
+$clientSecret = (string) ($config['client_secret'] ?? getenv('GITHUB_CLIENT_SECRET') ?: '');
 
 if ($clientId === '' || $clientSecret === '') {
     http_response_code(500);
@@ -39,24 +38,24 @@ if ($clientId === '' || $clientSecret === '') {
 }
 
 /**
- * Liefert das Handshake-Skript an das Popup aus.
+ * Delivers the handshake script to the popup.
  *
- * Decap wartet auf "authorizing:<provider>", antwortet darauf und bekommt
- * erst dann das Ergebnis – deshalb die Reihenfolge unten.
+ * Decap waits for "authorizing:<provider>", answers it and only then receives
+ * the result – hence the order below.
  */
-function antworten(string $status, array $inhalt)
+function respond(string $status, array $content)
 {
-    $nachricht = sprintf(
+    $message = sprintf(
         'authorization:%s:%s:%s',
         PROVIDER,
         $status,
-        json_encode($inhalt, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES),
+        json_encode($content, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES),
     );
 
     header('Content-Type: text/html; charset=utf-8');
     header('Cache-Control: no-store');
 
-    $nachrichtJs = json_encode($nachricht, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES);
+    $messageJs = json_encode($message, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES);
     $originJs = json_encode(SITE_ORIGIN, JSON_THROW_ON_ERROR);
     $handshakeJs = json_encode('authorizing:' . PROVIDER, JSON_THROW_ON_ERROR);
 
@@ -68,7 +67,7 @@ function antworten(string $status, array $inhalt)
         <p>Anmeldung wird abgeschlossen …</p>
         <script>
           (function () {
-            var nachricht = {$nachrichtJs};
+            var message = {$messageJs};
             var origin = {$originJs};
 
             if (!window.opener) {
@@ -77,13 +76,13 @@ function antworten(string $status, array $inhalt)
               return;
             }
 
-            function empfangen(e) {
+            function receive(e) {
               if (e.origin !== origin) return;
-              window.removeEventListener('message', empfangen, false);
-              window.opener.postMessage(nachricht, origin);
+              window.removeEventListener('message', receive, false);
+              window.opener.postMessage(message, origin);
             }
 
-            window.addEventListener('message', empfangen, false);
+            window.addEventListener('message', receive, false);
             window.opener.postMessage({$handshakeJs}, origin);
           })();
         </script>
@@ -94,14 +93,14 @@ function antworten(string $status, array $inhalt)
 }
 
 /**
- * POST an GitHub. Nutzt cURL, fällt aber auf Streams zurück – auf Shared
- * Hosting ist mal die eine, mal die andere Erweiterung abgeschaltet.
+ * POST to GitHub. Uses cURL but falls back to streams – on shared hosting
+ * sometimes one extension is disabled, sometimes the other.
  *
- * @return array{0: string|false, 1: string} Antwortkörper und Fehlertext
+ * @return array{0: string|false, 1: string} response body and error text
  */
-function http_post(string $url, array $felder): array
+function http_post(string $url, array $fields): array
 {
-    $koerper = http_build_query($felder);
+    $body = http_build_query($fields);
     $header = [
         'Accept: application/json',
         'Content-Type: application/x-www-form-urlencoded',
@@ -115,33 +114,33 @@ function http_post(string $url, array $felder): array
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_TIMEOUT => 15,
             CURLOPT_HTTPHEADER => $header,
-            CURLOPT_POSTFIELDS => $koerper,
+            CURLOPT_POSTFIELDS => $body,
         ]);
-        $antwort = curl_exec($ch);
-        $fehler = curl_error($ch);
+        $response = curl_exec($ch);
+        $error = curl_error($ch);
         curl_close($ch);
 
-        return [$antwort, $fehler];
+        return [$response, $error];
     }
 
     if (!ini_get('allow_url_fopen')) {
         return [false, 'Weder cURL noch allow_url_fopen sind verfügbar.'];
     }
 
-    $antwort = @file_get_contents($url, false, stream_context_create([
+    $response = @file_get_contents($url, false, stream_context_create([
         'http' => [
             'method' => 'POST',
             'header' => implode("\r\n", $header),
-            'content' => $koerper,
+            'content' => $body,
             'timeout' => 15,
             'ignore_errors' => true,
         ],
     ]));
 
-    return [$antwort, $antwort === false ? 'Anfrage an GitHub fehlgeschlagen.' : ''];
+    return [$response, $response === false ? 'Anfrage an GitHub fehlgeschlagen.' : ''];
 }
 
-// ---------------------------------------------------------------- Schritt 1
+// -------------------------------------------------------------------- Step 1
 if (!isset($_GET['code'])) {
     $state = bin2hex(random_bytes(16));
 
@@ -150,13 +149,13 @@ if (!isset($_GET['code'])) {
         'path' => '/oauth/',
         'secure' => true,
         'httponly' => true,
-        // Lax genügt: GitHub schickt den Benutzer per Top-Level-Navigation
-        // zurück, dabei wird das Cookie mitgesendet.
+        // Lax is enough: GitHub sends the user back through a top-level
+        // navigation, which carries the cookie along.
         'samesite' => 'Lax',
     ]);
 
-    // Nur erwartete Zeichen durchlassen, damit der Parameter nicht als
-    // Einfallstor in die GitHub-URL dient.
+    // Only let expected characters through, so the parameter cannot serve as a
+    // way into the GitHub URL.
     $scope = (string) ($_GET['scope'] ?? 'public_repo');
     if ($scope === '' || preg_match('/[^a-z_:,]/', $scope) === 1) {
         $scope = 'public_repo';
@@ -170,15 +169,15 @@ if (!isset($_GET['code'])) {
     exit;
 }
 
-// ---------------------------------------------------------------- Schritt 2
-$erwartet = (string) ($_COOKIE['decap_oauth_state'] ?? '');
-$erhalten = (string) ($_GET['state'] ?? '');
+// -------------------------------------------------------------------- Step 2
+$expected = (string) ($_COOKIE['decap_oauth_state'] ?? '');
+$received = (string) ($_GET['state'] ?? '');
 
-if ($erwartet === '' || !hash_equals($erwartet, $erhalten)) {
-    antworten('error', ['message' => 'Ungültiger state – bitte erneut anmelden.']);
+if ($expected === '' || !hash_equals($expected, $received)) {
+    respond('error', ['message' => 'Ungültiger state – bitte erneut anmelden.']);
 }
 
-// Cookie hat seinen Zweck erfüllt.
+// The cookie has served its purpose.
 setcookie('decap_oauth_state', '', [
     'expires' => time() - 3600,
     'path' => '/oauth/',
@@ -187,30 +186,31 @@ setcookie('decap_oauth_state', '', [
     'samesite' => 'Lax',
 ]);
 
-[$antwort, $fehler] = http_post('https://github.com/login/oauth/access_token', [
+[$response, $error] = http_post('https://github.com/login/oauth/access_token', [
     'client_id' => $clientId,
     'client_secret' => $clientSecret,
     'code' => (string) $_GET['code'],
 ]);
 
-if ($antwort === false) {
-    antworten('error', ['message' => 'GitHub nicht erreichbar: ' . $fehler]);
+if ($response === false) {
+    respond('error', ['message' => 'GitHub nicht erreichbar: ' . $error]);
 }
 
-$daten = json_decode((string) $antwort, true);
+$data = json_decode((string) $response, true);
 
-if (!is_array($daten) || !isset($daten['access_token'])) {
-    // GitHub liefert je nach Fehler nur "error" ohne Beschreibung.
-    antworten('error', [
+if (!is_array($data) || !isset($data['access_token'])) {
+    // Depending on the failure GitHub only returns "error" without a
+    // description.
+    respond('error', [
         'message' => (string) (
-            $daten['error_description']
-                ?? $daten['error']
+            $data['error_description']
+                ?? $data['error']
                 ?? 'Token-Tausch fehlgeschlagen.'
         ),
     ]);
 }
 
-antworten('success', [
-    'token' => (string) $daten['access_token'],
+respond('success', [
+    'token' => (string) $data['access_token'],
     'provider' => PROVIDER,
 ]);

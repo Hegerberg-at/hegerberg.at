@@ -3,16 +3,16 @@ import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import SectionHeading from '../components/SectionHeading.astro';
 
-const bilder = (await getCollection('galerie')).sort(
+const images = (await getCollection('gallery')).sort(
   (a, b) =>
-    a.data.reihenfolge - b.data.reihenfolge ||
-    a.data.titel.localeCompare(b.data.titel, 'de-AT'),
+    a.data.order - b.data.order ||
+    a.data.title.localeCompare(b.data.title, 'de-AT'),
 );
 
-const kategorien = [...new Set(bilder.map((bild) => bild.data.kategorie))];
+const categories = [...new Set(images.map((image) => image.data.category))];
 
-const anker = (wert: string) =>
-  wert
+const anchor = (value: string) =>
+  value
     .toLowerCase()
     .replace(/ä/g, 'ae')
     .replace(/ö/g, 'oe')
@@ -30,31 +30,31 @@ const anker = (wert: string) =>
     <SectionHeading
       as="h1"
       eyebrow="Impressionen"
-      titel="Galerie"
+      title="Galerie"
       text="Ein paar Eindrücke vom Haus, aus der Küche und vom Blick, für den man heraufkommt."
     />
 
     {
-      kategorien.length > 1 && (
-        <div class="mt-8" data-galerie-filter>
+      categories.length > 1 && (
+        <div class="mt-8" data-gallery-filter>
           <h2 class="sr-only">Nach Kategorie filtern</h2>
           <div class="flex flex-wrap gap-2" role="group" aria-label="Kategorie-Filter">
             <button
               type="button"
-              data-filter="alle"
+              data-filter="all"
               aria-pressed="true"
-              class="rounded-full border border-holz-300 px-4 py-2 text-sm font-semibold text-holz-800 transition hover:border-wald-600 hover:bg-wald-50 aria-pressed:border-wald-700 aria-pressed:bg-wald-700 aria-pressed:text-holz-50"
+              class="rounded-full border border-wood-300 px-4 py-2 text-sm font-semibold text-wood-800 transition hover:border-forest-600 hover:bg-forest-50 aria-pressed:border-forest-700 aria-pressed:bg-forest-700 aria-pressed:text-wood-50"
             >
               Alle
             </button>
-            {kategorien.map((kategorie) => (
+            {categories.map((category) => (
               <button
                 type="button"
-                data-filter={anker(kategorie)}
+                data-filter={anchor(category)}
                 aria-pressed="false"
-                class="rounded-full border border-holz-300 px-4 py-2 text-sm font-semibold text-holz-800 transition hover:border-wald-600 hover:bg-wald-50 aria-pressed:border-wald-700 aria-pressed:bg-wald-700 aria-pressed:text-holz-50"
+                class="rounded-full border border-wood-300 px-4 py-2 text-sm font-semibold text-wood-800 transition hover:border-forest-600 hover:bg-forest-50 aria-pressed:border-forest-700 aria-pressed:bg-forest-700 aria-pressed:text-wood-50"
               >
-                {kategorie}
+                {category}
               </button>
             ))}
           </div>
@@ -63,45 +63,45 @@ const anker = (wert: string) =>
     }
 
     {
-      bilder.length > 0 ? (
+      images.length > 0 ? (
         <ul
           class="mt-10 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4"
-          data-galerie
+          data-gallery
         >
-          {bilder.map((bild, index) => (
+          {images.map((image, index) => (
             <li
-              data-kategorie={anker(bild.data.kategorie)}
+              data-category={anchor(image.data.category)}
               class:list={[
                 'group',
-                bild.data.hervorheben && 'col-span-2 row-span-2',
+                image.data.highlight && 'col-span-2 row-span-2',
               ]}
             >
               <button
                 type="button"
-                class="relative block h-full w-full overflow-hidden rounded-2xl bg-holz-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-wald-700"
-                data-galerie-oeffnen
+                class="relative block h-full w-full overflow-hidden rounded-2xl bg-wood-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-forest-700"
+                data-gallery-open
                 data-index={index}
               >
                 <img
-                  src={bild.data.bild}
-                  alt={bild.data.bildAlt ?? bild.data.titel}
+                  src={image.data.image}
+                  alt={image.data.imageAlt ?? image.data.title}
                   loading={index < 4 ? 'eager' : 'lazy'}
                   decoding="async"
                   class:list={[
                     'w-full object-cover transition duration-500 group-hover:scale-105',
-                    bild.data.hervorheben
+                    image.data.highlight
                       ? 'aspect-square lg:aspect-auto lg:h-full'
                       : 'aspect-square',
                   ]}
                 />
                 <span
-                  class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-holz-950/85 to-transparent p-4 pt-10 text-left"
+                  class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-wood-950/85 to-transparent p-4 pt-10 text-left"
                 >
-                  <span class="block text-sm font-semibold text-holz-50 sm:text-base">
-                    {bild.data.titel}
+                  <span class="block text-sm font-semibold text-wood-50 sm:text-base">
+                    {image.data.title}
                   </span>
-                  <span class="mt-0.5 block text-xs text-holz-300">
-                    {bild.data.kategorie}
+                  <span class="mt-0.5 block text-xs text-wood-300">
+                    {image.data.category}
                   </span>
                 </span>
               </button>
@@ -109,7 +109,7 @@ const anker = (wert: string) =>
           ))}
         </ul>
       ) : (
-        <p class="mt-10 rounded-2xl border border-holz-200 bg-holz-100 p-8 text-holz-700">
+        <p class="mt-10 rounded-2xl border border-wood-200 bg-wood-100 p-8 text-wood-700">
           Noch keine Bilder vorhanden. Fotos können im Redaktionsbereich unter
           „Galerie“ hochgeladen werden.
         </p>
@@ -117,8 +117,8 @@ const anker = (wert: string) =>
     }
 
     <p
-      class="mt-10 hidden rounded-2xl border border-holz-200 bg-holz-100 p-6 text-holz-700"
-      data-galerie-leer
+      class="mt-10 hidden rounded-2xl border border-wood-200 bg-wood-100 p-6 text-wood-700"
+      data-gallery-empty
     >
       In dieser Kategorie sind noch keine Bilder vorhanden.
     </p>
@@ -127,16 +127,16 @@ const anker = (wert: string) =>
   <!-- Lightbox -->
   <dialog
     data-lightbox
-    class="max-h-none max-w-none bg-transparent p-0 backdrop:bg-holz-950/90 open:fixed open:inset-0 open:h-full open:w-full"
+    class="max-h-none max-w-none bg-transparent p-0 backdrop:bg-wood-950/90 open:fixed open:inset-0 open:h-full open:w-full"
     aria-label="Bildansicht"
   >
     <div class="flex h-full w-full flex-col">
-      <div class="flex items-center justify-between gap-4 p-4 text-holz-50">
-        <p class="text-sm tabular-nums text-holz-300" data-lightbox-zaehler></p>
+      <div class="flex items-center justify-between gap-4 p-4 text-wood-50">
+        <p class="text-sm tabular-nums text-wood-300" data-lightbox-counter></p>
         <button
           type="button"
-          data-lightbox-schliessen
-          class="grid size-11 place-items-center rounded-full bg-holz-50/10 transition hover:bg-holz-50/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-holz-50"
+          data-lightbox-close
+          class="grid size-11 place-items-center rounded-full bg-wood-50/10 transition hover:bg-wood-50/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-wood-50"
         >
           <span class="sr-only">Schließen</span>
           <svg
@@ -156,8 +156,8 @@ const anker = (wert: string) =>
       <div class="relative flex min-h-0 flex-1 items-center justify-center px-4">
         <button
           type="button"
-          data-lightbox-zurueck
-          class="absolute left-4 z-10 grid size-12 place-items-center rounded-full bg-holz-50/10 text-holz-50 transition hover:bg-holz-50/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-holz-50"
+          data-lightbox-prev
+          class="absolute left-4 z-10 grid size-12 place-items-center rounded-full bg-wood-50/10 text-wood-50 transition hover:bg-wood-50/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-wood-50"
         >
           <span class="sr-only">Vorheriges Bild</span>
           <svg
@@ -175,7 +175,7 @@ const anker = (wert: string) =>
         </button>
 
         <img
-          data-lightbox-bild
+          data-lightbox-image
           src=""
           alt=""
           class="max-h-full max-w-full rounded-xl object-contain shadow-2xl"
@@ -183,8 +183,8 @@ const anker = (wert: string) =>
 
         <button
           type="button"
-          data-lightbox-vor
-          class="absolute right-4 z-10 grid size-12 place-items-center rounded-full bg-holz-50/10 text-holz-50 transition hover:bg-holz-50/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-holz-50"
+          data-lightbox-next
+          class="absolute right-4 z-10 grid size-12 place-items-center rounded-full bg-wood-50/10 text-wood-50 transition hover:bg-wood-50/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-wood-50"
         >
           <span class="sr-only">Nächstes Bild</span>
           <svg
@@ -202,9 +202,9 @@ const anker = (wert: string) =>
         </button>
       </div>
 
-      <div class="p-6 text-center text-holz-100">
-        <p class="font-display text-lg font-bold" data-lightbox-titel></p>
-        <p class="mx-auto mt-1 max-w-xl text-sm text-holz-300" data-lightbox-text></p>
+      <div class="p-6 text-center text-wood-100">
+        <p class="font-display text-lg font-bold" data-lightbox-title></p>
+        <p class="mx-auto mt-1 max-w-xl text-sm text-wood-300" data-lightbox-text></p>
       </div>
     </div>
   </dialog>
@@ -212,119 +212,119 @@ const anker = (wert: string) =>
 
 <script
   type="application/json"
-  data-galerie-daten
+  data-gallery-data
   set:html={JSON.stringify(
-    bilder.map((bild) => ({
-      bild: bild.data.bild,
-      alt: bild.data.bildAlt ?? bild.data.titel,
-      titel: bild.data.titel,
-      beschreibung: bild.data.beschreibung ?? '',
+    images.map((image) => ({
+      image: image.data.image,
+      alt: image.data.imageAlt ?? image.data.title,
+      title: image.data.title,
+      description: image.data.description ?? '',
     })),
   )}
   is:inline
 />
 
 <script>
-  type Eintrag = {
-    bild: string;
+  type Entry = {
+    image: string;
     alt: string;
-    titel: string;
-    beschreibung: string;
+    title: string;
+    description: string;
   };
 
-  const datenEl = document.querySelector<HTMLScriptElement>('[data-galerie-daten]');
-  const raster = document.querySelector<HTMLElement>('[data-galerie]');
+  const dataEl = document.querySelector<HTMLScriptElement>('[data-gallery-data]');
+  const grid = document.querySelector<HTMLElement>('[data-gallery]');
   const dialog = document.querySelector<HTMLDialogElement>('[data-lightbox]');
 
-  if (datenEl && raster && dialog) {
-    const eintraege: Eintrag[] = JSON.parse(datenEl.textContent ?? '[]');
+  if (dataEl && grid && dialog) {
+    const entries: Entry[] = JSON.parse(dataEl.textContent ?? '[]');
 
-    const bildEl = dialog.querySelector<HTMLImageElement>('[data-lightbox-bild]')!;
-    const titelEl = dialog.querySelector<HTMLElement>('[data-lightbox-titel]')!;
+    const imageEl = dialog.querySelector<HTMLImageElement>('[data-lightbox-image]')!;
+    const titleEl = dialog.querySelector<HTMLElement>('[data-lightbox-title]')!;
     const textEl = dialog.querySelector<HTMLElement>('[data-lightbox-text]')!;
-    const zaehlerEl = dialog.querySelector<HTMLElement>('[data-lightbox-zaehler]')!;
+    const counterEl = dialog.querySelector<HTMLElement>('[data-lightbox-counter]')!;
 
-    // Reihenfolge der Lightbox folgt der aktuell sichtbaren Auswahl.
-    let sichtbar: number[] = eintraege.map((_, i) => i);
+    // The lightbox order follows the currently visible selection.
+    let visible: number[] = entries.map((_, i) => i);
     let position = 0;
 
-    const zeige = (neu: number) => {
-      if (sichtbar.length === 0) return;
-      position = (neu + sichtbar.length) % sichtbar.length;
-      const eintrag = eintraege[sichtbar[position]];
-      bildEl.src = eintrag.bild;
-      bildEl.alt = eintrag.alt;
-      titelEl.textContent = eintrag.titel;
-      textEl.textContent = eintrag.beschreibung;
-      zaehlerEl.textContent = `${position + 1} / ${sichtbar.length}`;
+    const show = (next: number) => {
+      if (visible.length === 0) return;
+      position = (next + visible.length) % visible.length;
+      const entry = entries[visible[position]];
+      imageEl.src = entry.image;
+      imageEl.alt = entry.alt;
+      titleEl.textContent = entry.title;
+      textEl.textContent = entry.description;
+      counterEl.textContent = `${position + 1} / ${visible.length}`;
     };
 
-    for (const knopf of raster.querySelectorAll<HTMLButtonElement>(
-      '[data-galerie-oeffnen]',
+    for (const button of grid.querySelectorAll<HTMLButtonElement>(
+      '[data-gallery-open]',
     )) {
-      knopf.addEventListener('click', () => {
-        const index = Number(knopf.dataset.index);
-        const stelle = sichtbar.indexOf(index);
-        zeige(stelle === -1 ? 0 : stelle);
+      button.addEventListener('click', () => {
+        const index = Number(button.dataset.index);
+        const slot = visible.indexOf(index);
+        show(slot === -1 ? 0 : slot);
         dialog.showModal();
       });
     }
 
     dialog
-      .querySelector('[data-lightbox-schliessen]')
+      .querySelector('[data-lightbox-close]')
       ?.addEventListener('click', () => dialog.close());
     dialog
-      .querySelector('[data-lightbox-vor]')
-      ?.addEventListener('click', () => zeige(position + 1));
+      .querySelector('[data-lightbox-next]')
+      ?.addEventListener('click', () => show(position + 1));
     dialog
-      .querySelector('[data-lightbox-zurueck]')
-      ?.addEventListener('click', () => zeige(position - 1));
+      .querySelector('[data-lightbox-prev]')
+      ?.addEventListener('click', () => show(position - 1));
 
     dialog.addEventListener('keydown', (event) => {
       if (event.key === 'ArrowRight') {
         event.preventDefault();
-        zeige(position + 1);
+        show(position + 1);
       } else if (event.key === 'ArrowLeft') {
         event.preventDefault();
-        zeige(position - 1);
+        show(position - 1);
       }
     });
 
-    // Klick auf den Hintergrund schließt.
+    // A click on the backdrop closes the dialog.
     dialog.addEventListener('click', (event) => {
       if (event.target === dialog) dialog.close();
     });
 
-    // Kategorie-Filter
-    const filter = document.querySelector<HTMLElement>('[data-galerie-filter]');
-    const leerHinweis = document.querySelector<HTMLElement>('[data-galerie-leer]');
+    // Category filter
+    const filter = document.querySelector<HTMLElement>('[data-gallery-filter]');
+    const emptyNote = document.querySelector<HTMLElement>('[data-gallery-empty]');
 
     filter?.addEventListener('click', (event) => {
-      const knopf = (event.target as HTMLElement).closest<HTMLButtonElement>(
+      const button = (event.target as HTMLElement).closest<HTMLButtonElement>(
         '[data-filter]',
       );
-      if (!knopf) return;
+      if (!button) return;
 
-      const gewaehlt = knopf.dataset.filter;
-      for (const anderer of filter.querySelectorAll<HTMLButtonElement>(
+      const selected = button.dataset.filter;
+      for (const other of filter.querySelectorAll<HTMLButtonElement>(
         '[data-filter]',
       )) {
-        anderer.setAttribute(
+        other.setAttribute(
           'aria-pressed',
-          String(anderer.dataset.filter === gewaehlt),
+          String(other.dataset.filter === selected),
         );
       }
 
-      const naechsteSichtbare: number[] = [];
-      const eintraegeImRaster = raster.querySelectorAll<HTMLElement>('[data-kategorie]');
-      eintraegeImRaster.forEach((element, index) => {
-        const passt = gewaehlt === 'alle' || element.dataset.kategorie === gewaehlt;
-        element.hidden = !passt;
-        if (passt) naechsteSichtbare.push(index);
+      const nextVisible: number[] = [];
+      const gridEntries = grid.querySelectorAll<HTMLElement>('[data-category]');
+      gridEntries.forEach((element, index) => {
+        const matches = selected === 'all' || element.dataset.category === selected;
+        element.hidden = !matches;
+        if (matches) nextVisible.push(index);
       });
 
-      sichtbar = naechsteSichtbare;
-      if (leerHinweis) leerHinweis.classList.toggle('hidden', sichtbar.length > 0);
+      visible = nextVisible;
+      if (emptyNote) emptyNote.classList.toggle('hidden', visible.length > 0);
     });
   }
 </script>

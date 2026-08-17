@@ -3,16 +3,16 @@
   publish = "dist"
 
 [build.environment]
-  # Bun als Build-Runtime auf Netlify.
+  # Bun as the build runtime on Netlify.
   BUN_VERSION = "1.3.14"
   NODE_VERSION = "22"
 
-# Decap CMS: Netlify Identity + Git Gateway müssen im Netlify-Dashboard
-# unter "Site configuration → Identity" aktiviert werden.
-#   1. Identity aktivieren
-#   2. Registration: "Invite only" setzen
-#   3. Services → Git Gateway aktivieren
-#   4. Redakteur:innen per "Invite users" einladen
+# Decap CMS: Netlify Identity + Git Gateway have to be enabled in the Netlify
+# dashboard under "Site configuration → Identity".
+#   1. enable Identity
+#   2. Registration: set "Invite only"
+#   3. Services → enable Git Gateway
+#   4. invite editors through "Invite users"
 
 [[headers]]
   for = "/admin/*"

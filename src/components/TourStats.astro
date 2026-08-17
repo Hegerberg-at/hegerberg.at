@@ -1,0 +1,42 @@
+---
+interface Stat {
+  label: string;
+  value: string;
+}
+
+interface Props {
+  stats: Stat[];
+  /** Extra classes for the surrounding block. */
+  class?: string;
+  /** Larger presentation for the detail page. */
+  large?: boolean;
+}
+
+const { stats, class: className, large = false } = Astro.props;
+---
+
+<dl
+  class:list={[
+    'grid gap-4',
+    large ? 'grid-cols-2 sm:grid-cols-4' : 'grid-cols-3',
+    className,
+  ]}
+>
+  {
+    stats.map((stat) => (
+      <div>
+        <dt class="text-xs uppercase tracking-[0.14em] text-wood-500">
+          {stat.label}
+        </dt>
+        <dd
+          class:list={[
+            'mt-1 font-semibold tabular-nums text-wood-950',
+            large ? 'text-lg sm:text-xl' : 'text-sm',
+          ]}
+        >
+          {stat.value}
+        </dd>
+      </div>
+    ))
+  }
+</dl>
