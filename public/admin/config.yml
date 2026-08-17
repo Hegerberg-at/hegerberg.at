@@ -1,16 +1,19 @@
 #
-# Lokale Entwicklung:
-#   just                  startet Dev-Server und CMS-Proxy zusammen
+# Local development:
+#   just                  starts the dev server and the CMS proxy together
 #   Browser:              http://localhost:4321/admin/
-# Alternativ von Hand: `bun run dev` und `bun run cms` in zwei Terminals.
-# Durch `local_backend: true` wird dabei direkt ins Dateisystem geschrieben –
-# ohne Git-Authentifizierung.
+# Alternatively by hand: `bun run dev` and `bun run cms` in two terminals.
+# With `local_backend: true` this writes straight to the file system –
+# no git authentication involved.
+#
+# The labels, hints and descriptions below are the editor-facing UI and stay
+# in German; only the technical field names are English.
 
 backend:
   name: github
   repo: Hegerberg-at/hegerberg.at
-  # OAuth-Proxy auf derselben Domain (public/oauth/index.php). Nur der Login
-  # läuft darüber – gespeichert wird direkt über die GitHub-API aus dem Browser.
+  # OAuth proxy on the same domain (public/oauth/index.php). Only the login
+  # goes through it – saving happens directly via the GitHub API in the browser.
   base_url: https://hegerberg.at
   auth_endpoint: oauth/
 
@@ -22,7 +25,7 @@ backend:
     uploadMedia: 'CMS: Medium {{path}} hochgeladen'
     deleteMedia: 'CMS: Medium {{path}} gelöscht'
 
-# Lokales Backend für die Entwicklung (wird in Produktion ignoriert).
+# Local backend for development (ignored in production).
 local_backend: false
 
 locale: de
@@ -33,15 +36,15 @@ media_folder: public/images/uploads
 public_folder: /images/uploads
 
 collections:
-  # ---------------------------------------------------------------- Startseite
-  - name: startseite
+  # ---------------------------------------------------------------------- Home
+  - name: home
     label: Startseite
     description: Die Texte der Willkommens-Seite. Speisen, Veranstaltungen und
       Öffnungszeiten werden aus den jeweiligen Bereichen übernommen.
     files:
       - name: index
         label: Startseite
-        file: src/content/startseite/index.md
+        file: src/content/home/index.md
         format: yaml-frontmatter
         preview: false
         fields:
@@ -49,51 +52,51 @@ collections:
             label: Titelbild-Bereich
             widget: object
             fields:
-              - name: bild
+              - name: image
                 label: Titelbild
                 widget: image
                 required: false
                 choose_url: false
                 hint: Breites Querformat, mindestens 2000 px. Ohne Angabe wird das
                   Standard-Panorama verwendet.
-              - name: titel
+              - name: title
                 label: Große Überschrift
                 widget: string
                 required: false
                 hint: Ohne Angabe wird „Schutzhaus am Hegerberg“ verwendet.
-              - name: untertitel
+              - name: subtitle
                 label: Untertitel
                 widget: text
                 required: false
-          - name: willkommen
+          - name: welcome
             label: Begrüßung
             widget: object
             fields:
               - { name: eyebrow, label: Kleine Zeile darüber, widget: string, required: false }
-              - { name: titel, label: Überschrift, widget: string }
+              - { name: title, label: Überschrift, widget: string }
               - name: text
                 label: Text
                 widget: text
                 required: false
-          - name: spezialitaeten
+          - name: specialties
             label: 'Abschnitt „Hausspezialitäten“'
             widget: object
             hint: Welche Speisen erscheinen, wird in der Speisekarte über
               „Hausspezialität“ festgelegt.
             fields:
               - { name: eyebrow, label: Kleine Zeile darüber, widget: string, required: false }
-              - { name: titel, label: Überschrift, widget: string }
+              - { name: title, label: Überschrift, widget: string }
               - name: text
                 label: Text
                 widget: text
                 required: false
-          - name: veranstaltungen
+          - name: events
             label: 'Abschnitt „Veranstaltungen“'
             widget: object
             hint: Zeigt automatisch die drei nächsten Veranstaltungen.
             fields:
               - { name: eyebrow, label: Kleine Zeile darüber, widget: string, required: false }
-              - { name: titel, label: Überschrift, widget: string }
+              - { name: title, label: Überschrift, widget: string }
               - name: text
                 label: Text
                 widget: text
@@ -103,44 +106,44 @@ collections:
             widget: object
             hint: Adresse und Telefonnummer werden automatisch ergänzt.
             fields:
-              - { name: titel, label: Überschrift, widget: string }
+              - { name: title, label: Überschrift, widget: string }
 
-  # ---------------------------------------------------------------- Speisekarte
-  - name: speisekarte
+  # ---------------------------------------------------------------------- Menu
+  - name: menu
     label: Speisekarte
     label_singular: Speise
     description: Alle Speisen und Getränke der Karte.
-    folder: src/content/speisekarte
+    folder: src/content/menu
     create: true
     delete: true
     format: yaml-frontmatter
     slug: '{{slug}}'
     identifier_field: name
-    summary: '{{kategorie}} · {{name}} ({{preis}} €)'
-    sortable_fields: [kategorie, reihenfolge, name, preis]
+    summary: '{{category}} · {{name}} ({{price}} €)'
+    sortable_fields: [category, order, name, price]
     view_groups:
       - label: Kategorie
-        field: kategorie
+        field: category
     fields:
       - { name: name, label: Bezeichnung, widget: string }
-      - name: kategorie
+      - name: category
         label: Kategorie
         widget: select
         options: [Suppen, Vorspeisen, Hauptspeisen, Desserts, Getränke]
         default: Hauptspeisen
-      - name: beschreibung
+      - name: description
         label: Beschreibung
         widget: text
         required: false
         hint: Kurzer Beschreibungstext, der unter der Bezeichnung erscheint.
-      - name: preis
+      - name: price
         label: Preis in Euro
         widget: number
         value_type: float
         min: 0
         step: 0.1
         hint: Punkt als Dezimaltrennzeichen, z. B. 16.5
-      - name: allergene
+      - name: allergens
         label: Allergene
         widget: select
         multiple: true
@@ -161,52 +164,52 @@ collections:
           - { label: 'O – Sulfite', value: O }
           - { label: 'P – Lupinen', value: P }
           - { label: 'R – Weichtiere', value: R }
-      - name: verfuegbar
+      - name: available
         label: Aktuell verfügbar
         widget: boolean
         default: true
         hint: Deaktivieren, statt die Speise zu löschen – sie wird dann ausgegraut dargestellt.
-      - name: hausspezialitaet
+      - name: houseSpecialty
         label: Hausspezialität
         widget: boolean
         default: false
         hint: Wird zusätzlich auf der Startseite hervorgehoben.
-      - name: reihenfolge
+      - name: order
         label: Reihenfolge
         widget: number
         value_type: int
         default: 100
         hint: Kleinere Zahl = weiter oben innerhalb der Kategorie.
 
-  # ----------------------------------------------------------- Öffnungszeiten
-  - name: oeffnungszeiten
+  # ------------------------------------------------------------- Opening hours
+  - name: openingHours
     label: Öffnungszeiten
     label_singular: Wochentag
     description: Je ein Eintrag pro Wochentag. Bitte keine Tage anlegen oder löschen.
-    folder: src/content/oeffnungszeiten
+    folder: src/content/opening-hours
     create: false
     delete: false
     format: yaml-frontmatter
-    identifier_field: tag
-    summary: '{{reihenfolge}} · {{tag}}'
-    sortable_fields: [reihenfolge]
+    identifier_field: day
+    summary: '{{order}} · {{day}}'
+    sortable_fields: [order]
     fields:
-      - name: tag
+      - name: day
         label: Wochentag
         widget: select
         options:
           [Montag, Dienstag, Mittwoch, Donnerstag, Freitag, Samstag, Sonntag]
-      - name: reihenfolge
+      - name: order
         label: Position (Mo = 1 … So = 7)
         widget: number
         value_type: int
         min: 1
         max: 7
-      - name: geschlossen
+      - name: closed
         label: Ruhetag / geschlossen
         widget: boolean
         default: false
-      - name: von
+      - name: from
         label: Geöffnet ab
         widget: string
         required: false
@@ -214,7 +217,7 @@ collections:
           ['^([01][0-9]|2[0-3]):[0-5][0-9]$', 'Bitte im Format HH:MM angeben']
         hint: 'Format HH:MM, z. B. 11:00. An einem Ruhetag wird die Zeit ignoriert
           und muss nicht gelöscht werden.'
-      - name: bis
+      - name: until
         label: Geöffnet bis
         widget: string
         required: false
@@ -222,47 +225,47 @@ collections:
           ['^([01][0-9]|2[0-3]):[0-5][0-9]$', 'Bitte im Format HH:MM angeben']
         hint: 'Format HH:MM, z. B. 22:00. An einem Ruhetag wird die Zeit ignoriert
           und muss nicht gelöscht werden.'
-      - name: hinweis
+      - name: note
         label: Hinweis
         widget: string
         required: false
         hint: 'z. B. „Ruhetag“ oder „Bei Schlechtwetter geschlossen“.'
 
-  # ---------------------------------------------------------------- Geschichte
-  - name: geschichte
+  # ------------------------------------------------------------------- History
+  - name: history
     label: Geschichte
     label_singular: Kapitel
     description: Die Kapitel auf der Seite „Geschichte“.
-    folder: src/content/geschichte
+    folder: src/content/history
     create: true
     delete: true
     format: yaml-frontmatter
     slug: '{{slug}}'
-    identifier_field: titel
-    summary: '{{jahr}} · {{titel}}'
-    sortable_fields: [reihenfolge, titel]
+    identifier_field: title
+    summary: '{{year}} · {{title}}'
+    sortable_fields: [order, title]
     fields:
-      - { name: titel, label: Titel, widget: string }
-      - name: jahr
+      - { name: title, label: Titel, widget: string }
+      - name: year
         label: Jahr / Zeitraum
         widget: string
         required: false
         hint: 'z. B. „1928“, „1950er“ oder „Heute“.'
-      - name: beschreibung
+      - name: description
         label: Kurzbeschreibung
         widget: text
         hint: Einleitender Satz, der als Vorspann angezeigt wird.
-      - name: bild
+      - name: image
         label: Bild
         widget: image
         required: false
         choose_url: false
-      - name: bildAlt
+      - name: imageAlt
         label: Bildbeschreibung (Alt-Text)
         widget: string
         required: false
         hint: Wichtig für Barrierefreiheit und Suchmaschinen.
-      - name: reihenfolge
+      - name: order
         label: Reihenfolge
         widget: number
         value_type: int
@@ -272,28 +275,28 @@ collections:
         widget: markdown
         required: false
 
-  # ------------------------------------------------------------------- Galerie
-  - name: galerie
+  # ------------------------------------------------------------------- Gallery
+  - name: gallery
     label: Galerie
     label_singular: Foto
     description: Fotos für die Galerie-Seite. Ein Eintrag = ein Bild.
-    folder: src/content/galerie
+    folder: src/content/gallery
     create: true
     delete: true
     format: yaml-frontmatter
     slug: '{{slug}}'
-    identifier_field: titel
-    summary: '{{reihenfolge}} · {{titel}} ({{kategorie}})'
-    sortable_fields: [reihenfolge, titel, kategorie]
+    identifier_field: title
+    summary: '{{order}} · {{title}} ({{category}})'
+    sortable_fields: [order, title, category]
     view_groups:
       - label: Kategorie
-        field: kategorie
+        field: category
     fields:
-      - name: titel
+      - name: title
         label: Titel
         widget: string
         hint: Wird über dem Bild und in der Großansicht angezeigt.
-      - name: bild
+      - name: image
         label: Foto
         widget: image
         choose_url: false
@@ -301,17 +304,17 @@ collections:
           config:
             max_file_size: 5000000
         hint: Querformat funktioniert am besten. Bitte vorher auf max. 2000 px Breite verkleinern.
-      - name: bildAlt
+      - name: imageAlt
         label: Bildbeschreibung (Alt-Text)
         widget: string
         required: false
         hint: Kurze Beschreibung für Screenreader. Ohne Angabe wird der Titel verwendet.
-      - name: beschreibung
+      - name: description
         label: Bildunterschrift
         widget: text
         required: false
         hint: Erscheint in der Großansicht unter dem Foto.
-      - name: kategorie
+      - name: category
         label: Kategorie
         widget: select
         default: Haus & Terrasse
@@ -320,12 +323,12 @@ collections:
           - Küche
           - Aussicht
           - Veranstaltungen
-      - name: hervorheben
+      - name: highlight
         label: Groß darstellen
         widget: boolean
         default: false
         hint: Das Foto belegt im Raster die doppelte Fläche.
-      - name: reihenfolge
+      - name: order
         label: Reihenfolge
         widget: number
         value_type: int
@@ -342,19 +345,19 @@ collections:
     delete: true
     format: yaml-frontmatter
     slug: '{{year}}-{{month}}-{{day}}-{{slug}}'
-    identifier_field: titel
-    summary: '{{datum}} · {{titel}}'
-    sortable_fields: [datum, titel]
+    identifier_field: title
+    summary: '{{date}} · {{title}}'
+    sortable_fields: [date, title]
     fields:
-      - { name: titel, label: Titel, widget: string }
-      - name: datum
+      - { name: title, label: Titel, widget: string }
+      - name: date
         label: Datum
         widget: datetime
         date_format: YYYY-MM-DD
         time_format: false
         picker_utc: true
         format: YYYY-MM-DD
-      - name: datumBis
+      - name: endDate
         label: Enddatum (bei mehrtägigen Veranstaltungen)
         widget: datetime
         required: false
@@ -362,27 +365,27 @@ collections:
         time_format: false
         picker_utc: true
         format: YYYY-MM-DD
-      - name: uhrzeit
+      - name: time
         label: Beginn (Uhrzeit)
         widget: string
         required: false
         pattern:
           ['^([01][0-9]|2[0-3]):[0-5][0-9]$', 'Bitte im Format HH:MM angeben']
         hint: 'Format HH:MM, z. B. 17:00'
-      - name: beschreibung
+      - name: description
         label: Kurzbeschreibung
         widget: text
         hint: Wird in der Vorschaukachel und als Vorspann auf der Detailseite angezeigt.
-      - name: bild
+      - name: image
         label: Bild
         widget: image
         required: false
         choose_url: false
-      - name: bildAlt
+      - name: imageAlt
         label: Bildbeschreibung (Alt-Text)
         widget: string
         required: false
-      - name: abgesagt
+      - name: cancelled
         label: Abgesagt
         widget: boolean
         default: false
@@ -392,17 +395,17 @@ collections:
         required: false
         hint: Ausführlicher Text – erscheint nur auf der Detailseite der
           Veranstaltung. Überschriften, Listen und Links sind möglich.
-      - name: galerie
+      - name: gallery
         label: Bildergalerie
         label_singular: Foto
         widget: list
         required: false
         collapsed: false
-        summary: '{{fields.bildAlt}}'
+        summary: '{{fields.imageAlt}}'
         hint: Zusätzliche Fotos, die auf der Detailseite unter dem Text als
           Galerie erscheinen.
         fields:
-          - name: bild
+          - name: image
             label: Foto
             widget: image
             choose_url: false
@@ -410,48 +413,48 @@ collections:
               config:
                 max_file_size: 5000000
             hint: Bitte vorher auf max. 2000 px Breite verkleinern.
-          - name: bildAlt
+          - name: imageAlt
             label: Bildbeschreibung (Alt-Text)
             widget: string
             required: false
             hint: Kurze Beschreibung für Screenreader.
-          - name: beschreibung
+          - name: description
             label: Bildunterschrift
             widget: text
             required: false
             hint: Erscheint in der Großansicht unter dem Foto.
 
-  # -------------------------------------------------------------------- Touren
-  - name: touren
+  # --------------------------------------------------------------------- Tours
+  - name: tours
     label: Aktivitäten
     label_singular: Tour
     description: Mountainbike-Touren und Wanderungen rund um den Hegerberg.
       Länge, Höhenmeter, Dauer und Höhenprofil werden automatisch aus der
       hochgeladenen GPX-Datei berechnet.
-    folder: src/content/touren
+    folder: src/content/tours
     create: true
     delete: true
     format: yaml-frontmatter
     slug: '{{slug}}'
-    identifier_field: titel
-    summary: '{{art}} · {{titel}}'
-    sortable_fields: [art, reihenfolge, titel]
+    identifier_field: title
+    summary: '{{type}} · {{title}}'
+    sortable_fields: [type, order, title]
     view_groups:
       - label: Art
-        field: art
+        field: type
     fields:
-      - { name: titel, label: Titel, widget: string }
-      - name: art
+      - { name: title, label: Titel, widget: string }
+      - name: type
         label: Art
         widget: select
         options: [Mountainbike, Wanderung]
         default: Wanderung
-      - name: schwierigkeit
+      - name: difficulty
         label: Schwierigkeit
         widget: select
         options: [leicht, mittel, schwer]
         default: mittel
-      - name: beschreibung
+      - name: description
         label: Kurzbeschreibung
         widget: text
         hint: Wird in der Übersicht auf der Kachel angezeigt.
@@ -471,33 +474,33 @@ collections:
         widget: string
         required: false
         hint: 'Ohne Angabe wird „Schutzhaus am Hegerberg“ angezeigt.'
-      - name: dauerMinuten
+      - name: durationMinutes
         label: Dauer in Minuten (überschreibt die Berechnung)
         widget: number
         value_type: int
         required: false
         min: 1
         hint: Nur ausfüllen, wenn die automatisch berechnete Zeit nicht passt.
-      - name: hinweis
+      - name: note
         label: Hinweis
         widget: string
         required: false
         hint: 'z. B. „Im Winter nicht geräumt“ oder „Forststraße gesperrt“.'
-      - name: bild
+      - name: image
         label: Bild
         widget: image
         required: false
         choose_url: false
         hint: Ohne Bild wird auf der Kachel der Streckenverlauf gezeichnet.
-      - name: bildAlt
+      - name: imageAlt
         label: Bildbeschreibung (Alt-Text)
         widget: string
         required: false
-      - name: empfohlen
+      - name: featured
         label: Empfohlene Tour
         widget: boolean
         default: false
-      - name: reihenfolge
+      - name: order
         label: Reihenfolge
         widget: number
         value_type: int

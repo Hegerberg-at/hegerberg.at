@@ -1,91 +1,90 @@
 /*
- * Service Worker für die Push-Benachrichtigungen bei neuen Veranstaltungen.
+ * Service worker for the push notifications about new events.
  *
- * Registriert wird er aus src/components/PushAnmeldung.astro. Er liegt
- * bewusst im Wurzelverzeichnis, weil ein Service Worker nur für sein eigenes
- * Verzeichnis und darunter zuständig sein darf – aus /api/sw.js ließe sich die
- * ganze Seite nicht bedienen.
+ * It is registered from src/components/PushSignup.astro. It deliberately sits
+ * in the root directory, because a service worker may only be responsible for
+ * its own directory and everything below it – from /api/sw.js it could not
+ * serve the whole site.
  *
- * Der Worker speichert nichts zwischen: Die Seite ist statisch und wird vom
- * Browser ohnehin gecacht. Er reagiert nur auf eintreffende Nachrichten und
- * auf Klicks darauf.
+ * The worker caches nothing: the site is static and gets cached by the browser
+ * anyway. It only reacts to incoming messages and to clicks on them.
  *
- * Die Nutzlast schickt public/api/push-versand.php als JSON:
- *   { "titel": "…", "text": "…", "url": "/veranstaltungen/…/" }
+ * public/api/push-send.php sends the payload as JSON:
+ *   { "title": "…", "text": "…", "url": "/veranstaltungen/…/" }
  */
 
-const STANDARD_TITEL = 'Schutzhaus am Hegerberg';
-const STANDARD_ZIEL = '/veranstaltungen/';
-const SYMBOL = '/icons/icon-192.png';
+const DEFAULT_TITLE = 'Schutzhaus am Hegerberg';
+const DEFAULT_TARGET = '/veranstaltungen/';
+const ICON = '/icons/icon-192.png';
 
 /**
- * Nutzlast der Benachrichtigung lesen. Manche Push-Dienste stellen auch
- * Nachrichten ohne Inhalt zu – dann bleibt es bei den Standardwerten.
+ * Read the payload of the notification. Some push services also deliver
+ * messages without content – then the defaults apply.
  */
-function inhalt(ereignis) {
-  if (!ereignis.data) return {};
+function payload(event) {
+  if (!event.data) return {};
   try {
-    return ereignis.data.json() ?? {};
+    return event.data.json() ?? {};
   } catch {
-    return { text: ereignis.data.text() };
+    return { text: event.data.text() };
   }
 }
 
-// Neuer Worker soll sofort übernehmen statt auf das Schließen aller Tabs zu
-// warten – sonst bleibt nach einem Deploy die alte Fassung aktiv.
+// A new worker should take over immediately instead of waiting for all tabs to
+// close – otherwise the old version stays active after a deploy.
 self.addEventListener('install', () => self.skipWaiting());
-self.addEventListener('activate', (ereignis) =>
-  ereignis.waitUntil(self.clients.claim()),
+self.addEventListener('activate', (event) =>
+  event.waitUntil(self.clients.claim()),
 );
 
-self.addEventListener('push', (ereignis) => {
-  const daten = inhalt(ereignis);
-  const ziel = typeof daten.url === 'string' && daten.url.startsWith('/')
-    ? daten.url
-    : STANDARD_ZIEL;
+self.addEventListener('push', (event) => {
+  const data = payload(event);
+  const target = typeof data.url === 'string' && data.url.startsWith('/')
+    ? data.url
+    : DEFAULT_TARGET;
 
-  ereignis.waitUntil(
-    self.registration.showNotification(daten.titel || STANDARD_TITEL, {
-      body: daten.text || '',
-      icon: SYMBOL,
-      badge: SYMBOL,
+  event.waitUntil(
+    self.registration.showNotification(data.title || DEFAULT_TITLE, {
+      body: data.text || '',
+      icon: ICON,
+      badge: ICON,
       lang: 'de-AT',
-      // Gleiches Tag = eine ältere Benachrichtigung zur selben Veranstaltung
-      // wird ersetzt statt gestapelt.
-      tag: ziel,
-      data: { url: ziel },
+      // Same tag = an older notification about the same event is replaced
+      // instead of stacked.
+      tag: target,
+      data: { url: target },
     }),
   );
 });
 
-self.addEventListener('notificationclick', (ereignis) => {
-  ereignis.notification.close();
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
 
-  const ziel = new URL(
-    ereignis.notification.data?.url ?? STANDARD_ZIEL,
+  const target = new URL(
+    event.notification.data?.url ?? DEFAULT_TARGET,
     self.location.origin,
   ).href;
 
-  ereignis.waitUntil(
+  event.waitUntil(
     (async () => {
-      // Ist die Seite schon offen, dorthin wechseln statt einen zweiten Tab
-      // aufzumachen.
-      const fenster = await self.clients.matchAll({
+      // If the page is already open, switch to it instead of opening a second
+      // tab.
+      const windows = await self.clients.matchAll({
         type: 'window',
         includeUncontrolled: true,
       });
 
-      for (const client of fenster) {
-        if (client.url === ziel) return client.focus();
+      for (const client of windows) {
+        if (client.url === target) return client.focus();
       }
 
-      const offen = fenster.find((client) => 'navigate' in client);
-      if (offen) {
-        const gewechselt = await offen.navigate(ziel);
-        return gewechselt?.focus();
+      const open = windows.find((client) => 'navigate' in client);
+      if (open) {
+        const navigated = await open.navigate(target);
+        return navigated?.focus();
       }
 
-      return self.clients.openWindow(ziel);
+      return self.clients.openWindow(target);
     })(),
   );
 });

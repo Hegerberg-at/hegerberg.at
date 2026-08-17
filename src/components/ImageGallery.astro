@@ -1,0 +1,213 @@
+---
+/**
+ * Small image gallery with a lightbox.
+ *
+ * Unlike the gallery page it works without category filters and can be used
+ * several times on one page – the script handles every instance on its own.
+ */
+interface GalleryImage {
+  image: string;
+  imageAlt?: string;
+  description?: string;
+}
+
+interface Props {
+  images: GalleryImage[];
+  /** Heading above the grid. Leave empty to hide it. */
+  title?: string;
+}
+
+const { images, title } = Astro.props;
+
+const entries = images.map((entry) => ({
+  image: entry.image,
+  alt: entry.imageAlt ?? '',
+  description: entry.description ?? '',
+}));
+---
+
+{
+  entries.length > 0 && (
+    <section data-image-gallery>
+      {title && (
+        <h2 class="text-2xl font-bold text-wood-950">{title}</h2>
+      )}
+
+      <ul class="mt-6 grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3">
+        {entries.map((entry, index) => (
+          <li class="group">
+            <button
+              type="button"
+              data-gallery-open
+              data-index={index}
+              class="relative block h-full w-full overflow-hidden rounded-2xl bg-wood-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-forest-700"
+            >
+              <img
+                src={entry.image}
+                alt={entry.alt}
+                loading="lazy"
+                decoding="async"
+                class="aspect-square w-full object-cover transition duration-500 group-hover:scale-105"
+              />
+              <span class="sr-only">Bild {index + 1} vergrößern</span>
+            </button>
+          </li>
+        ))}
+      </ul>
+
+      <script
+        type="application/json"
+        data-gallery-data
+        set:html={JSON.stringify(entries)}
+        is:inline
+      />
+
+      <dialog
+        data-lightbox
+        class="max-h-none max-w-none bg-transparent p-0 backdrop:bg-wood-950/90 open:fixed open:inset-0 open:h-full open:w-full"
+        aria-label="Bildansicht"
+      >
+        <div class="flex h-full w-full flex-col">
+          <div class="flex items-center justify-between gap-4 p-4 text-wood-50">
+            <p class="text-sm tabular-nums text-wood-300" data-lightbox-counter />
+            <button
+              type="button"
+              data-lightbox-close
+              class="grid size-11 place-items-center rounded-full bg-wood-50/10 transition hover:bg-wood-50/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-wood-50"
+            >
+              <span class="sr-only">Schließen</span>
+              <svg
+                class="size-6"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                aria-hidden="true"
+              >
+                <path d="M6 6l12 12M18 6L6 18" />
+              </svg>
+            </button>
+          </div>
+
+          <div class="relative flex min-h-0 flex-1 items-center justify-center px-4">
+            <button
+              type="button"
+              data-lightbox-prev
+              class="absolute left-4 z-10 grid size-12 place-items-center rounded-full bg-wood-50/10 text-wood-50 transition hover:bg-wood-50/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-wood-50"
+            >
+              <span class="sr-only">Vorheriges Bild</span>
+              <svg
+                class="size-6"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M15 5l-7 7 7 7" />
+              </svg>
+            </button>
+
+            <img
+              data-lightbox-image
+              src=""
+              alt=""
+              class="max-h-full max-w-full rounded-xl object-contain shadow-2xl"
+            />
+
+            <button
+              type="button"
+              data-lightbox-next
+              class="absolute right-4 z-10 grid size-12 place-items-center rounded-full bg-wood-50/10 text-wood-50 transition hover:bg-wood-50/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-wood-50"
+            >
+              <span class="sr-only">Nächstes Bild</span>
+              <svg
+                class="size-6"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          </div>
+
+          <div class="p-6 text-center text-wood-100">
+            <p class="mx-auto max-w-xl text-sm text-wood-300" data-lightbox-text />
+          </div>
+        </div>
+      </dialog>
+    </section>
+  )
+}
+
+<script>
+  type Entry = { image: string; alt: string; description: string };
+
+  for (const gallery of document.querySelectorAll<HTMLElement>(
+    '[data-image-gallery]',
+  )) {
+    const dataEl = gallery.querySelector<HTMLScriptElement>('[data-gallery-data]');
+    const dialog = gallery.querySelector<HTMLDialogElement>('[data-lightbox]');
+    if (!dataEl || !dialog) continue;
+
+    const entries: Entry[] = JSON.parse(dataEl.textContent ?? '[]');
+    if (entries.length === 0) continue;
+
+    const imageEl = dialog.querySelector<HTMLImageElement>('[data-lightbox-image]')!;
+    const textEl = dialog.querySelector<HTMLElement>('[data-lightbox-text]')!;
+    const counterEl = dialog.querySelector<HTMLElement>('[data-lightbox-counter]')!;
+
+    let position = 0;
+
+    const show = (next: number) => {
+      position = (next + entries.length) % entries.length;
+      const entry = entries[position];
+      imageEl.src = entry.image;
+      imageEl.alt = entry.alt;
+      textEl.textContent = entry.description;
+      counterEl.textContent = `${position + 1} / ${entries.length}`;
+    };
+
+    for (const button of gallery.querySelectorAll<HTMLButtonElement>(
+      '[data-gallery-open]',
+    )) {
+      button.addEventListener('click', () => {
+        show(Number(button.dataset.index));
+        dialog.showModal();
+      });
+    }
+
+    dialog
+      .querySelector('[data-lightbox-close]')
+      ?.addEventListener('click', () => dialog.close());
+    dialog
+      .querySelector('[data-lightbox-next]')
+      ?.addEventListener('click', () => show(position + 1));
+    dialog
+      .querySelector('[data-lightbox-prev]')
+      ?.addEventListener('click', () => show(position - 1));
+
+    dialog.addEventListener('keydown', (event) => {
+      if (event.key === 'ArrowRight') {
+        event.preventDefault();
+        show(position + 1);
+      } else if (event.key === 'ArrowLeft') {
+        event.preventDefault();
+        show(position - 1);
+      }
+    });
+
+    // A click on the backdrop closes the dialog.
+    dialog.addEventListener('click', (event) => {
+      if (event.target === dialog) dialog.close();
+    });
+  }
+</script>

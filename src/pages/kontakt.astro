@@ -2,70 +2,70 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 import SectionHeading from "../components/SectionHeading.astro";
 import BecomeMembership from "../components/BecomeMembership.astro";
-import { site, adresseEinzeilig } from "../lib/site";
+import { site, addressOneLine } from "../lib/site";
 
 const { lat, lng } = site.geo;
-const spanne = 0.02;
-const bbox = [lng - spanne, lat - spanne / 2, lng + spanne, lat + spanne / 2]
-  .map((wert) => wert.toFixed(5))
+const span = 0.02;
+const bbox = [lng - span, lat - span / 2, lng + span, lat + span / 2]
+  .map((value) => value.toFixed(5))
   .join(",");
 
 const osmEmbed = `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat},${lng}`;
 const osmLink = `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}#map=15/${lat}/${lng}`;
 const routeLink = `https://www.openstreetmap.org/directions?to=${lat}%2C${lng}`;
-const telefonLink = `tel:${site.telefon.replace(/\s/g, "")}`;
+const phoneLink = `tel:${site.phone.replace(/\s/g, "")}`;
 ---
 
 <BaseLayout
   title="Kontakt & Anfahrt"
-  description={`So erreichen Sie das Schutzhaus am Hegerberg: ${adresseEinzeilig}. Anfahrt mit dem Auto, zu Fuß und mit dem Rad.`}
+  description={`So erreichen Sie das Schutzhaus am Hegerberg: ${addressOneLine}. Anfahrt mit dem Auto, zu Fuß und mit dem Rad.`}
 >
   <div class="container-page py-16 sm:py-20">
     <SectionHeading
       as="h1"
       eyebrow="Kontakt"
-      titel="So finden Sie zu uns"
+      title="So finden Sie zu uns"
       text="Der Hegerberg liegt im Gemeindegebiet von Stössing, Bezirk St. Pölten Land – rund eine Autostunde von Wien."
     />
 
     <div class="mt-12 grid gap-10 lg:grid-cols-[minmax(0,24rem)_1fr]">
       <div class="space-y-6">
         <div class="card p-6 sm:p-8">
-          <h2 class="text-xl font-bold text-holz-950">
+          <h2 class="text-xl font-bold text-wood-950">
             Schutzhaus am Hegerberg
           </h2>
           <address class="mt-4 space-y-4 text-base not-italic leading-relaxed">
-            <p class="text-holz-700">
-              {site.adresse.strasse}<br />
-              {site.adresse.plz}&nbsp;{site.adresse.ort}<br />
-              {site.adresse.bundesland}, {site.adresse.land}
+            <p class="text-wood-700">
+              {site.address.street}<br />
+              {site.address.postalCode}&nbsp;{site.address.city}<br />
+              {site.address.state}, {site.address.country}
             </p>
             <p>
               <span
-                class="block text-xs uppercase tracking-[0.15em] text-holz-500"
+                class="block text-xs uppercase tracking-[0.15em] text-wood-500"
                 >Telefon</span
               >
               <a
-                href={telefonLink}
-                class="font-semibold text-wald-700 underline underline-offset-4"
-                >{site.telefonAnzeige}</a
+                href={phoneLink}
+                class="font-semibold text-forest-700 underline underline-offset-4"
+                >{site.phoneDisplay}</a
               >
             </p>
             <p>
               <span
-                class="block text-xs uppercase tracking-[0.15em] text-holz-500"
+                class="block text-xs uppercase tracking-[0.15em] text-wood-500"
                 >E-Mail</span
               >
               <a
                 href={`mailto:${site.email}`}
-                class="font-semibold text-wald-700 underline underline-offset-4"
+                class="font-semibold text-forest-700 underline underline-offset-4"
                 >{site.email}</a
               >
             </p>
           </address>
 
           <div class="mt-6 flex flex-col gap-3">
-            <a href={telefonLink} class="btn-primary">Jetzt anrufen</a>
+            <a href={phoneLink} class="btn-primary">Jetzt anrufen</a>
             <a
               href={routeLink}
               target="_blank"
@@ -76,34 +76,34 @@ const telefonLink = `tel:${site.telefon.replace(/\s/g, "")}`;
         </div>
 
         <div class="card p-6 sm:p-8">
-          <h2 class="text-xl font-bold text-holz-950">Anreise</h2>
+          <h2 class="text-xl font-bold text-wood-950">Anreise</h2>
           <dl class="mt-4 space-y-5 text-sm leading-relaxed">
             <div>
-              <dt class="font-semibold text-holz-900">Mit dem Auto</dt>
-              <dd class="mt-1 text-holz-700">
+              <dt class="font-semibold text-wood-900">Mit dem Auto</dt>
+              <dd class="mt-1 text-wood-700">
                 Über die B44 nach Stössing, dann der Beschilderung „Hegerberg“
                 folgen. Kostenfreie Parkplätze direkt beim Haus sowie am
                 Waldparkplatz 300 m unterhalb.
               </dd>
             </div>
             <div>
-              <dt class="font-semibold text-holz-900">Zu Fuß</dt>
-              <dd class="mt-1 text-holz-700">
+              <dt class="font-semibold text-wood-900">Zu Fuß</dt>
+              <dd class="mt-1 text-wood-700">
                 Vom Ortszentrum Stössing rund 1,5 Stunden Gehzeit über den
                 markierten Wanderweg. Der Aufstieg ist auch mit Kindern gut
                 machbar.
               </dd>
             </div>
             <div>
-              <dt class="font-semibold text-holz-900">Mit dem Rad</dt>
-              <dd class="mt-1 text-holz-700">
+              <dt class="font-semibold text-wood-900">Mit dem Rad</dt>
+              <dd class="mt-1 text-wood-700">
                 Beliebte Mountainbike-Route über die Forststraße. Abstellplätze
                 und Ladestation für E-Bikes vorhanden.
               </dd>
             </div>
             <div>
-              <dt class="font-semibold text-holz-900">Öffentlich</dt>
-              <dd class="mt-1 text-holz-700">
+              <dt class="font-semibold text-wood-900">Öffentlich</dt>
+              <dd class="mt-1 text-wood-700">
                 Regionalbus bis Stössing Ort, ab dort zu Fuß. Fahrplanauskunft
                 über den VOR.
               </dd>
@@ -116,23 +116,23 @@ const telefonLink = `tel:${site.telefon.replace(/\s/g, "")}`;
         <!-- Karte wird erst auf Klick geladen (keine Drittanbieter-Verbindung ohne Zustimmung). -->
         <div
           class="card overflow-hidden"
-          data-karte
+          data-map
           data-src={osmEmbed}
-          data-titel="Karte: Standort Schutzhaus am Hegerberg"
+          data-title="Karte: Standort Schutzhaus am Hegerberg"
         >
           <div
             class="relative flex aspect-[4/3] items-center justify-center bg-[url('/images/hero.svg')] bg-cover bg-center lg:aspect-[16/10]"
-            data-karte-platzhalter
+            data-map-placeholder
           >
-            <div class="absolute inset-0 bg-holz-950/65"></div>
-            <div class="relative max-w-sm p-8 text-center text-holz-50">
+            <div class="absolute inset-0 bg-wood-950/65"></div>
+            <div class="relative max-w-sm p-8 text-center text-wood-50">
               <p class="font-display text-xl font-bold">Karte anzeigen</p>
-              <p class="mt-2 text-sm text-holz-200">
+              <p class="mt-2 text-sm text-wood-200">
                 Beim Laden der Karte wird eine Verbindung zu OpenStreetMap
                 hergestellt. Dabei wird Ihre IP-Adresse an OpenStreetMap
                 übertragen.
               </p>
-              <button type="button" class="btn-primary mt-6" data-karte-laden>
+              <button type="button" class="btn-primary mt-6" data-map-load>
                 Karte laden
               </button>
               <p class="mt-4 text-xs">
@@ -140,7 +140,7 @@ const telefonLink = `tel:${site.telefon.replace(/\s/g, "")}`;
                   href={osmLink}
                   target="_blank"
                   rel="noopener noreferrer"
-                  class="underline underline-offset-4 hover:text-holz-50"
+                  class="underline underline-offset-4 hover:text-wood-50"
                   >Stattdessen auf openstreetmap.org öffnen</a
                 >
               </p>
@@ -149,8 +149,8 @@ const telefonLink = `tel:${site.telefon.replace(/\s/g, "")}`;
         </div>
 
         <div class="card p-6 sm:p-8">
-          <h2 class="text-xl font-bold text-holz-950">Gut zu wissen</h2>
-          <ul class="mt-4 grid gap-3 text-sm text-holz-700 sm:grid-cols-2">
+          <h2 class="text-xl font-bold text-wood-950">Gut zu wissen</h2>
+          <ul class="mt-4 grid gap-3 text-sm text-wood-700 sm:grid-cols-2">
             <li class="flex gap-2">
               <span aria-hidden="true">·</span> Terrasse mit Panoramablick
             </li>
@@ -179,26 +179,23 @@ const telefonLink = `tel:${site.telefon.replace(/\s/g, "")}`;
 </BaseLayout>
 
 <script>
-  for (const behaelter of document.querySelectorAll<HTMLElement>(
-    "[data-karte]",
-  )) {
-    const knopf =
-      behaelter.querySelector<HTMLButtonElement>("[data-karte-laden]");
-    const platzhalter = behaelter.querySelector<HTMLElement>(
-      "[data-karte-platzhalter]",
+  for (const container of document.querySelectorAll<HTMLElement>("[data-map]")) {
+    const button = container.querySelector<HTMLButtonElement>("[data-map-load]");
+    const placeholder = container.querySelector<HTMLElement>(
+      "[data-map-placeholder]",
     );
 
-    knopf?.addEventListener("click", () => {
-      const src = behaelter.dataset.src;
-      if (!src || !platzhalter) return;
+    button?.addEventListener("click", () => {
+      const src = container.dataset.src;
+      if (!src || !placeholder) return;
 
       const iframe = document.createElement("iframe");
       iframe.src = src;
-      iframe.title = behaelter.dataset.titel ?? "Karte";
+      iframe.title = container.dataset.title ?? "Karte";
       iframe.loading = "lazy";
       iframe.referrerPolicy = "no-referrer";
       iframe.className = "aspect-[4/3] w-full border-0 lg:aspect-[16/10]";
-      platzhalter.replaceWith(iframe);
+      placeholder.replaceWith(iframe);
     });
   }
 </script>

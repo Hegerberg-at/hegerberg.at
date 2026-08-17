@@ -23,20 +23,20 @@ pnpm-debug.log*
 # jetbrains setting folder
 .idea/
 
-# OAuth-Zugangsdaten (wird von Hand per FTP hochgeladen)
+# OAuth credentials (uploaded by hand via FTP)
 public/oauth/config.php
 
-# SMTP-Zugangsdaten des Kontaktformulars (wird beim Deploy erzeugt)
+# SMTP credentials of the contact form (generated on deploy)
 public/api/config.php
 
-# PHPMailer und web-push – liegen nur auf dem Server, siehe
-# .github/workflows/php-bibliotheken.yml
+# PHPMailer and web-push – they only live on the server, see
+# .github/workflows/php-libraries.yml
 public/vendor/
 
-# VAPID-Schlüssel der Push-Benachrichtigungen (wird beim Deploy erzeugt)
+# VAPID keys of the push notifications (generated on deploy)
 public/api/push-config.php
 
-# Die abonnierten Geräte. Auf dem Server liegen sie eine Ebene über
-# public_html, lokal landen sie hier – in beiden Fällen nichts fürs Repository.
+# The subscribed devices. On the server they sit one level above
+# public_html, locally they end up here – neither belongs in the repository.
 push-daten/
 public/api/push-daten/

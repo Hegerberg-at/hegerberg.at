@@ -1,44 +1,44 @@
 <?php
 
 /**
- * Vorlage für die SMTP-Zugangsdaten des Kontaktformulars.
+ * Template for the SMTP credentials of the contact form.
  *
- * Im Normalbetrieb wird config.php beim Deploy automatisch aus den
- * GitHub-Secrets erzeugt (Environment „FTP“, siehe
- * .github/workflows/deploy.yml) – von Hand ist dort nichts zu tun.
+ * In normal operation config.php is generated automatically on deploy from the
+ * GitHub secrets (environment „FTP“, see .github/workflows/deploy.yml) – there
+ * is nothing to do by hand.
  *
- * Diese Vorlage ist nur für lokale Tests gedacht: kopieren nach
- * public/api/config.php, Werte eintragen. Die Kopie ist über .gitignore
- * vom Repository ausgeschlossen.
+ * This template is only meant for local tests: copy it to
+ * public/api/config.php and fill in the values. The copy is excluded from the
+ * repository via .gitignore.
  *
- * Hintergrund: Ohne SMTP-Anmeldung ersetzt Hostinger den Absender durch die
- * am Server hinterlegte Adresse. Darum meldet sich das Formular am Postfach
- * no-reply@hegerberg.at an und versendet darüber. „benutzer“ und „absender“
- * müssen dieselbe Adresse sein – ein fremder Absender wird vom Mailserver
- * abgewiesen oder wieder überschrieben.
+ * Background: without SMTP authentication Hostinger replaces the sender with
+ * the address configured on the server. That is why the form authenticates
+ * against the mailbox no-reply@hegerberg.at and sends through it. "username"
+ * and "from" have to be the same address – a foreign sender is rejected by the
+ * mail server or overwritten again.
  *
- * Das Postfach wird im hPanel unter „E-Mails → E-Mail-Konten“ angelegt.
+ * The mailbox is created in the hPanel under „E-Mails → E-Mail-Konten“.
  */
 
 declare(strict_types=1);
 
 return [
-    // SMTP-Server aus dem hPanel („E-Mail-Konten → Verbindungsdaten“).
+    // SMTP server from the hPanel („E-Mail-Konten → Verbindungsdaten“).
     'host' => 'smtp.hostinger.com',
 
-    // 465 mit 'ssl' oder 587 mit 'tls'. ('keine' schaltet die Verschlüsselung
-    // ab – ausschließlich für lokale Tests gegen einen Dummy-Server.)
+    // 465 with 'ssl' or 587 with 'tls'. ('none' turns encryption off – for
+    // local tests against a dummy server only.)
     'port' => 465,
-    'verschluesselung' => 'ssl',
+    'encryption' => 'ssl',
 
-    // Postfach, an dem sich das Script anmeldet.
-    'benutzer' => 'no-reply@hegerberg.at',
-    'passwort' => 'HIER_DAS_POSTFACH_PASSWORT',
+    // Mailbox the script authenticates against.
+    'username' => 'no-reply@hegerberg.at',
+    'password' => 'HIER_DAS_POSTFACH_PASSWORT',
 
-    // Absender der Mail – muss zum Postfach oben passen.
-    'absender' => 'no-reply@hegerberg.at',
-    'absender_name' => 'Schutzhaus am Hegerberg',
+    // Sender of the mail – has to match the mailbox above.
+    'from' => 'no-reply@hegerberg.at',
+    'from_name' => 'Schutzhaus am Hegerberg',
 
-    // Empfänger der Anfragen.
-    'empfaenger' => 'office@hegerberg.at',
+    // Recipient of the requests.
+    'recipient' => 'office@hegerberg.at',
 ];

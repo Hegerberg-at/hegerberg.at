@@ -1,12 +1,12 @@
 ---
-titel: 2. Sternwanderung
-datum: 2026-06-13
-datumBis: 2026-06-13
-uhrzeit: 16:00
-beschreibung: |-
+title: 2. Sternwanderung
+date: 2026-06-13
+endDate: 2026-06-13
+time: 16:00
+description: |-
   Wanderung auf den Hegerberg von verschiedenen Startpunkte.
   Für Essen und Trinken sort der Hegerbergwirt
-abgesagt: false
+cancelled: false
 ---
 Wanderung auf den Hegerberg von verschiedenen Startpunkte.
 

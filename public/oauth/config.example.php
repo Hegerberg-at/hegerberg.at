@@ -1,18 +1,17 @@
 <?php
 /**
- * Vorlage für die Zugangsdaten des OAuth-Proxys.
+ * Template for the credentials of the OAuth proxy.
  *
- * Im Normalbetrieb wird config.php beim Deploy automatisch aus den
- * GitHub-Secrets OAUTH_CLIENT_ID und OAUTH_CLIENT_SECRET erzeugt
- * (Environment „FTP“, siehe .github/workflows/deploy.yml) – von Hand ist
- * dort nichts zu tun.
+ * In normal operation config.php is generated automatically on deploy from the
+ * GitHub secrets OAUTH_CLIENT_ID and OAUTH_CLIENT_SECRET (environment „FTP“,
+ * see .github/workflows/deploy.yml) – there is nothing to do by hand.
  *
- * Diese Vorlage ist nur für lokale Tests gedacht: kopieren nach
- * public/oauth/config.php, Werte eintragen. Die Kopie ist über .gitignore
- * vom Repository ausgeschlossen.
+ * This template is only meant for local tests: copy it to
+ * public/oauth/config.php and fill in the values. The copy is excluded from
+ * the repository via .gitignore.
  *
- * Die zugehörige GitHub-OAuth-App (Settings → Developer settings →
- * OAuth Apps) braucht:
+ * The matching GitHub OAuth app (Settings → Developer settings → OAuth Apps)
+ * needs:
  *   Homepage URL:               https://hegerberg.at
  *   Authorization callback URL: https://hegerberg.at/oauth/
  */

@@ -2,10 +2,10 @@
 import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import SectionHeading from '../components/SectionHeading.astro';
-import SpeiseEintrag from '../components/SpeiseEintrag.astro';
-import AllergenLegende from '../components/AllergenLegende.astro';
+import MenuItem from '../components/MenuItem.astro';
+import AllergenLegend from '../components/AllergenLegend.astro';
 
-const KATEGORIEN = [
+const CATEGORIES = [
   'Suppen',
   'Vorspeisen',
   'Hauptspeisen',
@@ -13,25 +13,25 @@ const KATEGORIEN = [
   'Getränke',
 ] as const;
 
-const alle = await getCollection('speisekarte');
+const all = await getCollection('menu');
 
-const gruppiert = KATEGORIEN.map((kategorie) => ({
-  kategorie,
-  speisen: alle
-    .filter((speise) => speise.data.kategorie === kategorie)
+const grouped = CATEGORIES.map((category) => ({
+  category,
+  dishes: all
+    .filter((dish) => dish.data.category === category)
     .sort(
       (a, b) =>
-        a.data.reihenfolge - b.data.reihenfolge ||
+        a.data.order - b.data.order ||
         a.data.name.localeCompare(b.data.name, 'de-AT'),
     ),
-})).filter((gruppe) => gruppe.speisen.length > 0);
+})).filter((group) => group.dishes.length > 0);
 
-const verwendeteAllergene = [
-  ...new Set(alle.flatMap((speise) => speise.data.allergene)),
+const usedAllergens = [
+  ...new Set(all.flatMap((dish) => dish.data.allergens)),
 ];
 
-const anker = (kategorie: string) =>
-  kategorie.toLowerCase().replace(/ä/g, 'ae').replace(/[^a-z]/g, '-');
+const anchor = (category: string) =>
+  category.toLowerCase().replace(/ä/g, 'ae').replace(/[^a-z]/g, '-');
 ---
 
 <BaseLayout
@@ -42,20 +42,20 @@ const anker = (kategorie: string) =>
     <SectionHeading
       as="h1"
       eyebrow="Speisen & Getränke"
-      titel="Unsere Speisekarte"
+      title="Unsere Speisekarte"
       text="Bodenständige österreichische Küche mit Produkten aus der Region. Alle Preise in Euro inklusive Steuern und Abgaben."
     />
 
     <nav aria-label="Kategorien" class="mt-8">
       <ul class="flex flex-wrap gap-2">
         {
-          gruppiert.map((gruppe) => (
+          grouped.map((group) => (
             <li>
               <a
-                href={`#${anker(gruppe.kategorie)}`}
-                class="inline-block rounded-full border border-holz-300 px-4 py-2 text-sm font-semibold text-holz-800 transition hover:border-wald-600 hover:bg-wald-50 hover:text-wald-800"
+                href={`#${anchor(group.category)}`}
+                class="inline-block rounded-full border border-wood-300 px-4 py-2 text-sm font-semibold text-wood-800 transition hover:border-forest-600 hover:bg-forest-50 hover:text-forest-800"
               >
-                {gruppe.kategorie}
+                {group.category}
               </a>
             </li>
           ))
@@ -65,27 +65,27 @@ const anker = (kategorie: string) =>
 
     <div class="mt-14 space-y-14">
       {
-        gruppiert.map((gruppe) => (
+        grouped.map((group) => (
           <section
-            id={anker(gruppe.kategorie)}
+            id={anchor(group.category)}
             class="scroll-mt-28"
-            aria-labelledby={`titel-${anker(gruppe.kategorie)}`}
+            aria-labelledby={`title-${anchor(group.category)}`}
           >
             <h2
-              id={`titel-${anker(gruppe.kategorie)}`}
-              class="border-b-2 border-wald-700 pb-3 text-2xl font-bold text-holz-950 sm:text-3xl"
+              id={`title-${anchor(group.category)}`}
+              class="border-b-2 border-forest-700 pb-3 text-2xl font-bold text-wood-950 sm:text-3xl"
             >
-              {gruppe.kategorie}
+              {group.category}
             </h2>
-            <ul class="divide-y divide-holz-200">
-              {gruppe.speisen.map((speise) => (
-                <SpeiseEintrag
-                  name={speise.data.name}
-                  beschreibung={speise.data.beschreibung}
-                  preis={speise.data.preis}
-                  allergene={speise.data.allergene}
-                  verfuegbar={speise.data.verfuegbar}
-                  hausspezialitaet={speise.data.hausspezialitaet}
+            <ul class="divide-y divide-wood-200">
+              {group.dishes.map((dish) => (
+                <MenuItem
+                  name={dish.data.name}
+                  description={dish.data.description}
+                  price={dish.data.price}
+                  allergens={dish.data.allergens}
+                  available={dish.data.available}
+                  houseSpecialty={dish.data.houseSpecialty}
                 />
               ))}
             </ul>
@@ -95,7 +95,7 @@ const anker = (kategorie: string) =>
     </div>
 
     <div class="mt-16">
-      <AllergenLegende codes={verwendeteAllergene} />
+      <AllergenLegend codes={usedAllergens} />
     </div>
   </div>
 </BaseLayout>

@@ -2,8 +2,8 @@ import { defineCollection, z } from 'astro:content';
 import { glob } from 'astro/loaders';
 
 /**
- * Österreichische Allergen-Kennzeichnung (Codex-Kapitel B 33).
- * Wird auch in src/lib/allergene.ts für die Legende verwendet.
+ * Austrian allergen labelling (Codex chapter B 33).
+ * Also used by src/lib/allergens.ts for the legend.
  */
 const ALLERGEN_CODES = [
   'A',
@@ -22,7 +22,8 @@ const ALLERGEN_CODES = [
   'R',
 ] as const;
 
-const WOCHENTAGE = [
+/** Weekday names as shown on the site – editorial values, kept in German. */
+const WEEKDAYS = [
   'Montag',
   'Dienstag',
   'Mittwoch',
@@ -33,188 +34,185 @@ const WOCHENTAGE = [
 ] as const;
 
 /**
- * Decap CMS entfernt geleerte Felder nicht aus dem Frontmatter, sondern
- * schreibt einen leeren String (`von: ""`). Für Felder mit Formatprüfung
- * würde das die Schema-Validierung brechen – deshalb wird ein leerer Wert
- * hier wie „nicht gesetzt“ behandelt.
+ * Decap CMS does not drop emptied fields from the frontmatter, it writes an
+ * empty string instead (`from: ""`). For fields with a format check that would
+ * break schema validation – so an empty value is treated as "not set" here.
  */
-const leerAlsUndefined = (wert: unknown) =>
-  typeof wert === 'string' && wert.trim() === '' ? undefined : wert;
+const emptyAsUndefined = (value: unknown) =>
+  typeof value === 'string' && value.trim() === '' ? undefined : value;
 
-/** Uhrzeit im Format "HH:MM" – leeres Feld erlaubt. */
-const uhrzeit = z.preprocess(
-  leerAlsUndefined,
+/** Time of day in "HH:MM" format – an empty field is allowed. */
+const timeOfDay = z.preprocess(
+  emptyAsUndefined,
   z
     .string()
     .regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'Format muss HH:MM sein')
     .optional(),
 );
 
-/** Wiederkehrender Aufbau eines Abschnitts-Titels (siehe SectionHeading.astro). */
-const abschnitt = z.object({
+/** Recurring shape of a section heading (see SectionHeading.astro). */
+const section = z.object({
   eyebrow: z.string().optional(),
-  titel: z.string(),
+  title: z.string(),
   text: z.string().optional(),
 });
 
-/** Einzelner Eintrag – die redaktionellen Texte der Startseite. */
-const startseite = defineCollection({
-  loader: glob({ base: './src/content/startseite', pattern: '**/*.md' }),
+/** Single entry – the editorial texts of the home page. */
+const home = defineCollection({
+  loader: glob({ base: './src/content/home', pattern: '**/*.md' }),
   schema: z.object({
     hero: z.object({
-      bild: z.string().optional(),
-      titel: z.string().optional(),
-      untertitel: z.string().optional(),
+      image: z.string().optional(),
+      title: z.string().optional(),
+      subtitle: z.string().optional(),
     }),
-    willkommen: abschnitt,
-    spezialitaeten: abschnitt,
-    veranstaltungen: abschnitt,
+    welcome: section,
+    specialties: section,
+    events: section,
     cta: z.object({
-      titel: z.string(),
+      title: z.string(),
     }),
   }),
 });
 
-const speisekarte = defineCollection({
-  loader: glob({ base: './src/content/speisekarte', pattern: '**/*.md' }),
+const menu = defineCollection({
+  loader: glob({ base: './src/content/menu', pattern: '**/*.md' }),
   schema: z.object({
     name: z.string(),
-    kategorie: z.enum([
+    category: z.enum([
       'Suppen',
       'Vorspeisen',
       'Hauptspeisen',
       'Desserts',
       'Getränke',
     ]),
-    beschreibung: z.string().optional(),
-    preis: z.number().nonnegative(),
-    allergene: z.array(z.enum(ALLERGEN_CODES)).default([]),
-    verfuegbar: z.boolean().default(true),
-    hausspezialitaet: z.boolean().default(false),
-    /** Kleinere Zahl = weiter oben innerhalb der Kategorie. */
-    reihenfolge: z.number().int().default(100),
+    description: z.string().optional(),
+    price: z.number().nonnegative(),
+    allergens: z.array(z.enum(ALLERGEN_CODES)).default([]),
+    available: z.boolean().default(true),
+    houseSpecialty: z.boolean().default(false),
+    /** Lower number = further up within the category. */
+    order: z.number().int().default(100),
   }),
 });
 
-const oeffnungszeiten = defineCollection({
-  loader: glob({ base: './src/content/oeffnungszeiten', pattern: '**/*.md' }),
+const openingHours = defineCollection({
+  loader: glob({ base: './src/content/opening-hours', pattern: '**/*.md' }),
   schema: z
     .object({
-      tag: z.enum(WOCHENTAGE),
-      /** Sortierung Mo=1 … So=7 */
-      reihenfolge: z.number().int().min(1).max(7),
-      geschlossen: z.boolean().default(false),
-      /** Format "HH:MM" – nur relevant wenn geschlossen === false */
-      von: uhrzeit,
-      bis: uhrzeit,
-      /** z.B. "Ruhetag" oder "Bei Schlechtwetter geschlossen" */
-      hinweis: z.string().optional(),
+      day: z.enum(WEEKDAYS),
+      /** Sort order Mon=1 … Sun=7 */
+      order: z.number().int().min(1).max(7),
+      closed: z.boolean().default(false),
+      /** "HH:MM" format – only relevant while closed === false */
+      from: timeOfDay,
+      until: timeOfDay,
+      /** e.g. "Ruhetag" or "Bei Schlechtwetter geschlossen" */
+      note: z.string().optional(),
     })
     /**
-     * An einem Ruhetag zählen im CMS stehengebliebene Uhrzeiten nicht – die
-     * Datei behält sie (praktisch beim Zurückschalten), die Website ignoriert
-     * sie zuverlässig.
+     * On a rest day, times left over in the CMS do not count – the file keeps
+     * them (handy when switching back), the website ignores them reliably.
      */
-    .transform((tag) =>
-      tag.geschlossen ? { ...tag, von: undefined, bis: undefined } : tag,
+    .transform((day) =>
+      day.closed ? { ...day, from: undefined, until: undefined } : day,
     ),
 });
 
-const geschichte = defineCollection({
-  loader: glob({ base: './src/content/geschichte', pattern: '**/*.md' }),
+const history = defineCollection({
+  loader: glob({ base: './src/content/history', pattern: '**/*.md' }),
   schema: z.object({
-    titel: z.string(),
-    /** Jahr bzw. Zeitraum, z.B. "1928" oder "1970er" */
-    jahr: z.string().optional(),
-    beschreibung: z.string(),
-    bild: z.string().optional(),
-    bildAlt: z.string().optional(),
-    reihenfolge: z.number().int().default(100),
+    title: z.string(),
+    /** Year or period, e.g. "1928" or "1970er" */
+    year: z.string().optional(),
+    description: z.string(),
+    image: z.string().optional(),
+    imageAlt: z.string().optional(),
+    order: z.number().int().default(100),
   }),
 });
 
 const events = defineCollection({
   loader: glob({ base: './src/content/events', pattern: '**/*.md' }),
   schema: z.object({
-    titel: z.string(),
-    datum: z.coerce.date(),
-    /** Optionales Enddatum für mehrtägige Veranstaltungen. */
-    datumBis: z.preprocess(leerAlsUndefined, z.coerce.date().optional()),
-    uhrzeit,
-    beschreibung: z.string(),
-    bild: z.string().optional(),
-    bildAlt: z.string().optional(),
-    abgesagt: z.boolean().default(false),
+    title: z.string(),
+    date: z.coerce.date(),
+    /** Optional end date for events spanning several days. */
+    endDate: z.preprocess(emptyAsUndefined, z.coerce.date().optional()),
+    time: timeOfDay,
+    description: z.string(),
+    image: z.string().optional(),
+    imageAlt: z.string().optional(),
+    cancelled: z.boolean().default(false),
     /**
-     * Zusätzliche Fotos, die nur auf der Detailseite der Veranstaltung
-     * erscheinen. Decap schreibt eine geleerte Liste als `null` – deshalb der
-     * Fallback auf ein leeres Array.
+     * Extra photos that only show up on the event's detail page. Decap writes
+     * an emptied list as `null` – hence the fallback to an empty array.
      */
-    galerie: z.preprocess(
-      (wert) => wert ?? [],
+    gallery: z.preprocess(
+      (value) => value ?? [],
       z.array(
         z.object({
-          bild: z.string(),
-          bildAlt: z.string().optional(),
-          beschreibung: z.string().optional(),
+          image: z.string(),
+          imageAlt: z.string().optional(),
+          description: z.string().optional(),
         }),
       ),
     ),
   }),
 });
 
-const galerie = defineCollection({
-  loader: glob({ base: './src/content/galerie', pattern: '**/*.md' }),
+const gallery = defineCollection({
+  loader: glob({ base: './src/content/gallery', pattern: '**/*.md' }),
   schema: z.object({
-    titel: z.string(),
-    bild: z.string(),
-    /** Alt-Text für Screenreader – fällt auf den Titel zurück. */
-    bildAlt: z.string().optional(),
-    beschreibung: z.string().optional(),
-    kategorie: z
+    title: z.string(),
+    image: z.string(),
+    /** Alt text for screen readers – falls back to the title. */
+    imageAlt: z.string().optional(),
+    description: z.string().optional(),
+    category: z
       .enum(['Haus & Terrasse', 'Küche', 'Aussicht', 'Veranstaltungen'])
       .default('Haus & Terrasse'),
-    /** Größere Darstellung im Raster. */
-    hervorheben: z.boolean().default(false),
-    reihenfolge: z.number().int().default(100),
+    /** Larger presentation within the grid. */
+    highlight: z.boolean().default(false),
+    order: z.number().int().default(100),
   }),
 });
 
-const touren = defineCollection({
-  loader: glob({ base: './src/content/touren', pattern: '**/*.md' }),
+const tours = defineCollection({
+  loader: glob({ base: './src/content/tours', pattern: '**/*.md' }),
   schema: z.object({
-    titel: z.string(),
-    art: z.enum(['Mountainbike', 'Wanderung']),
-    schwierigkeit: z.enum(['leicht', 'mittel', 'schwer']).default('mittel'),
-    beschreibung: z.string(),
+    title: z.string(),
+    type: z.enum(['Mountainbike', 'Wanderung']),
+    difficulty: z.enum(['leicht', 'mittel', 'schwer']).default('mittel'),
+    description: z.string(),
     /**
-     * Öffentlicher Pfad der GPX-Datei, z.B. "/gpx/gipfelrunde.gpx".
-     * Distanz, Höhenmeter und Profil werden daraus beim Build berechnet.
+     * Public path of the GPX file, e.g. "/gpx/gipfelrunde.gpx".
+     * Distance, elevation gain and profile are derived from it at build time.
      */
     gpx: z.string().regex(/^\/.+\.gpx$/i, 'Pfad muss mit / beginnen und auf .gpx enden'),
-    /** Ausgangspunkt – ohne Angabe das Schutzhaus. */
+    /** Starting point – the Schutzhaus when left empty. */
     start: z.string().optional(),
-    /** Überschreibt die berechnete Gehzeit bzw. Fahrzeit (in Minuten). */
-    dauerMinuten: z.preprocess(
-      leerAlsUndefined,
+    /** Overrides the calculated walking resp. riding time (in minutes). */
+    durationMinutes: z.preprocess(
+      emptyAsUndefined,
       z.coerce.number().int().positive().optional(),
     ),
-    /** z.B. "Im Winter oft vereist" */
-    hinweis: z.string().optional(),
-    bild: z.string().optional(),
-    bildAlt: z.string().optional(),
-    /** Auf der Übersicht hervorgehoben. */
-    empfohlen: z.boolean().default(false),
-    reihenfolge: z.number().int().default(100),
+    /** e.g. "Im Winter oft vereist" */
+    note: z.string().optional(),
+    image: z.string().optional(),
+    imageAlt: z.string().optional(),
+    /** Highlighted on the overview page. */
+    featured: z.boolean().default(false),
+    order: z.number().int().default(100),
   }),
 });
 
 export const collections = {
-  startseite,
-  speisekarte,
-  oeffnungszeiten,
-  geschichte,
+  home,
+  menu,
+  openingHours,
+  history,
   events,
-  galerie,
-  touren,
+  gallery,
+  tours,
 };

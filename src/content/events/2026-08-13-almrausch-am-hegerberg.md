@@ -1,12 +1,12 @@
 ---
-titel: Almrausch am Hegerberg
-datum: 2026-08-29
-datumBis: 2026-08-29
-uhrzeit: 10:00
-beschreibung: Oldtimer treffen mit Verköstigung
-bild: /images/uploads/almrausch-hegerberg.jpeg
-bildAlt: Almrausch Hegerberg
-abgesagt: false
+title: Almrausch am Hegerberg
+date: 2026-08-29
+endDate: 2026-08-29
+time: 10:00
+description: Oldtimer treffen mit Verköstigung
+image: /images/uploads/almrausch-hegerberg.jpeg
+imageAlt: Almrausch Hegerberg
+cancelled: false
 ---
 ## Oldtimer treffen mit Verköstigung
 

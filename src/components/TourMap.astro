@@ -1,0 +1,146 @@
+---
+import 'leaflet/dist/leaflet.css';
+
+interface Props {
+  /** Simplified polyline [lat, lng]. */
+  line: [number, number][];
+  bounds: [[number, number], [number, number]];
+  title: string;
+  roundTrip: boolean;
+  /** Public path of the GPX file for the download link. */
+  gpx: string;
+}
+
+const { line, bounds, title, roundTrip, gpx } = Astro.props;
+
+const center: [number, number] = [
+  (bounds[0][0] + bounds[1][0]) / 2,
+  (bounds[0][1] + bounds[1][1]) / 2,
+];
+const osmLink = `https://www.openstreetmap.org/#map=14/${center[0].toFixed(5)}/${center[1].toFixed(5)}`;
+---
+
+<div class="card overflow-hidden">
+  <div
+    data-tour-map
+    data-line={JSON.stringify(line)}
+    data-bounds={JSON.stringify(bounds)}
+    data-title={title}
+    data-round-trip={roundTrip ? 'yes' : 'no'}
+    class="z-0 relative h-[22rem] w-full bg-wood-100 sm:h-[30rem]"
+  >
+    <noscript>
+      <div class="grid h-full place-items-center p-6 text-center text-sm text-wood-700">
+        Für die interaktive Karte wird JavaScript benötigt.
+        <a href={gpx} download class="mt-2 block font-semibold text-forest-700 underline">
+          GPX-Datei herunterladen
+        </a>
+      </div>
+    </noscript>
+    <p
+      data-map-placeholder
+      class="pointer-events-none absolute inset-0 grid place-items-center text-sm text-wood-600"
+    >
+      Karte wird geladen …
+    </p>
+  </div>
+
+  <p class="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-t border-wood-200 px-4 py-3 text-xs text-wood-600">
+    <span>Kartendaten © OpenStreetMap-Mitwirkende</span>
+    <a
+      href={osmLink}
+      target="_blank"
+      rel="noopener noreferrer"
+      class="font-semibold text-forest-700 underline underline-offset-2"
+    >
+      In OpenStreetMap öffnen
+    </a>
+  </p>
+</div>
+
+<style>
+  /* Leaflet sets its own font sizes – aligned with the page here. */
+  :global(.leaflet-container) {
+    font-family: inherit;
+    background: #f2e9dd;
+  }
+
+  :global(.leaflet-control-attribution) {
+    font-size: 10px;
+  }
+</style>
+
+<script>
+  import L from 'leaflet';
+
+  type MapElement = HTMLElement & { dataset: DOMStringMap };
+
+  const containers = document.querySelectorAll<MapElement>('[data-tour-map]');
+
+  const build = (element: MapElement) => {
+    const line: [number, number][] = JSON.parse(element.dataset.line ?? '[]');
+    const bounds: [[number, number], [number, number]] = JSON.parse(
+      element.dataset.bounds ?? 'null',
+    );
+    if (line.length < 2 || !bounds) return;
+
+    const map = L.map(element, {
+      // Scrolling over the map should move the page, not zoom.
+      scrollWheelZoom: false,
+      attributionControl: true,
+    });
+
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 18,
+      attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    }).addTo(map);
+
+    // White outline beneath the line, so it stays readable on any background.
+    L.polyline(line, { color: '#ffffff', weight: 8, opacity: 0.85 }).addTo(map);
+    const track = L.polyline(line, {
+      color: '#2e4f34',
+      weight: 4,
+      opacity: 1,
+      lineJoin: 'round',
+    }).addTo(map);
+    track.bindTooltip(element.dataset.title ?? 'Tour', { sticky: true });
+
+    const pointStyle = {
+      radius: 7,
+      weight: 3,
+      color: '#ffffff',
+      fillOpacity: 1,
+    };
+    L.circleMarker(line[0], { ...pointStyle, fillColor: '#39623f' })
+      .addTo(map)
+      .bindPopup(element.dataset.roundTrip === 'yes' ? 'Start und Ziel' : 'Start');
+
+    if (element.dataset.roundTrip !== 'yes') {
+      L.circleMarker(line[line.length - 1], { ...pointStyle, fillColor: '#97613b' })
+        .addTo(map)
+        .bindPopup('Ziel');
+    }
+
+    map.fitBounds(bounds, { padding: [28, 28] });
+
+    element.querySelector('[data-map-placeholder]')?.remove();
+
+    // The mouse wheel only zooms after a click into the map.
+    map.on('click', () => map.scrollWheelZoom.enable());
+    map.on('mouseout', () => map.scrollWheelZoom.disable());
+  };
+
+  // Tiles are only loaded once the map actually becomes visible.
+  const observer = new IntersectionObserver(
+    (entries) => {
+      for (const entry of entries) {
+        if (!entry.isIntersecting) continue;
+        observer.unobserve(entry.target);
+        build(entry.target as MapElement);
+      }
+    },
+    { rootMargin: '200px' },
+  );
+
+  for (const element of containers) observer.observe(element);
+</script>

@@ -12,23 +12,23 @@ import { site } from '../lib/site';
     <SectionHeading
       as="h1"
       eyebrow="Rechtliches"
-      titel="Impressum"
+      title="Impressum"
       text="Offenlegung gemäß § 5 E-Commerce-Gesetz und § 25 Mediengesetz."
     />
 
-    <div class="mt-12 max-w-2xl space-y-8 leading-relaxed text-holz-800">
+    <div class="mt-12 max-w-2xl space-y-8 leading-relaxed text-wood-800">
       <section>
-        <h2 class="text-xl font-bold text-holz-950">Medieninhaber &amp; Betreiber</h2>
+        <h2 class="text-xl font-bold text-wood-950">Medieninhaber &amp; Betreiber</h2>
         <address class="mt-3 not-italic">
-          {site.impressum.inhaber}<br />
-          {site.adresse.strasse}<br />
-          {site.adresse.plz}&nbsp;{site.adresse.ort}<br />
-          {site.adresse.land}
+          {site.legal.owner}<br />
+          {site.address.street}<br />
+          {site.address.postalCode}&nbsp;{site.address.city}<br />
+          {site.address.country}
         </address>
         <p class="mt-3">
           Telefon: <a
-            href={`tel:${site.telefon.replace(/\s/g, '')}`}
-            class="underline underline-offset-4">{site.telefonAnzeige}</a
+            href={`tel:${site.phone.replace(/\s/g, '')}`}
+            class="underline underline-offset-4">{site.phoneDisplay}</a
           ><br />
           E-Mail: <a
             href={`mailto:${site.email}`}
@@ -38,17 +38,17 @@ import { site } from '../lib/site';
       </section>
 
       <section>
-        <h2 class="text-xl font-bold text-holz-950">Unternehmensgegenstand</h2>
-        <p class="mt-3">{site.impressum.unternehmensgegenstand}</p>
+        <h2 class="text-xl font-bold text-wood-950">Unternehmensgegenstand</h2>
+        <p class="mt-3">{site.legal.businessPurpose}</p>
       </section>
 
       <section>
-        <h2 class="text-xl font-bold text-holz-950">
+        <h2 class="text-xl font-bold text-wood-950">
           Gewerbebehörde &amp; Kammerzugehörigkeit
         </h2>
         <p class="mt-3">
-          Gewerbebehörde: {site.impressum.behoerde}<br />
-          Kammer: {site.impressum.kammer}<br />
+          Gewerbebehörde: {site.legal.authority}<br />
+          Kammer: {site.legal.chamber}<br />
           Anwendbare Rechtsvorschrift: Gewerbeordnung (
           <a
             href="https://www.ris.bka.gv.at"
@@ -60,7 +60,7 @@ import { site } from '../lib/site';
       </section>
 
       <section>
-        <h2 class="text-xl font-bold text-holz-950">Online-Streitbeilegung</h2>
+        <h2 class="text-xl font-bold text-wood-950">Online-Streitbeilegung</h2>
         <p class="mt-3">
           Die Europäische Kommission stellt eine Plattform zur
           Online-Streitbeilegung bereit:
@@ -76,7 +76,7 @@ import { site } from '../lib/site';
       </section>
 
       <section>
-        <h2 class="text-xl font-bold text-holz-950">Haftung für Inhalte</h2>
+        <h2 class="text-xl font-bold text-wood-950">Haftung für Inhalte</h2>
         <p class="mt-3">
           Die Inhalte dieser Website werden mit größtmöglicher Sorgfalt erstellt.
           Für die Richtigkeit, Vollständigkeit und Aktualität – insbesondere von
@@ -87,7 +87,7 @@ import { site } from '../lib/site';
       </section>
 
       <section>
-        <h2 class="text-xl font-bold text-holz-950">Urheberrecht</h2>
+        <h2 class="text-xl font-bold text-wood-950">Urheberrecht</h2>
         <p class="mt-3">
           Texte und Bilder dieser Website sind urheberrechtlich geschützt. Eine
           Verwendung außerhalb der Grenzen des Urheberrechts bedarf der

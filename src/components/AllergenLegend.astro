@@ -1,0 +1,38 @@
+---
+import { ALLERGENS } from '../lib/allergens';
+
+interface Props {
+  /** Only show the codes that are actually in use. */
+  codes?: string[];
+}
+
+const { codes } = Astro.props;
+const entries = Object.entries(ALLERGENS).filter(
+  ([code]) => !codes || codes.includes(code),
+);
+---
+
+<section
+  class="rounded-2xl border border-wood-200 bg-wood-100 p-6 sm:p-8"
+  aria-labelledby="allergen-legend"
+>
+  <h2 id="allergen-legend" class="text-lg font-bold text-wood-950">
+    Allergen-Kennzeichnung
+  </h2>
+  <p class="mt-2 text-sm text-wood-700">
+    Gemäß österreichischer Allergeninformationsverordnung. Unser Personal
+    informiert Sie gerne persönlich über die Zutaten unserer Speisen.
+  </p>
+  <dl
+    class="mt-5 grid grid-cols-1 gap-x-8 gap-y-2 text-sm sm:grid-cols-2 lg:grid-cols-3"
+  >
+    {
+      entries.map(([code, label]) => (
+        <div class="flex gap-3">
+          <dt class="w-5 shrink-0 font-bold text-forest-800">{code}</dt>
+          <dd class="text-wood-700">{label}</dd>
+        </div>
+      ))
+    }
+  </dl>
+</section>

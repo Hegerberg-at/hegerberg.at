@@ -1,60 +1,60 @@
 #
-# Deployment auf das Hostinger-Webhosting.
+# Deployment to the Hostinger web hosting.
 #
-# Bei jedem Push auf main (also auch bei Änderungen über /admin/) baut der
-# Runner die Seite und lädt dist/ per FTP in den Webspace. Auf dem Server
-# läuft nur PHP für den OAuth-Login – die Seite selbst ist statisch.
+# On every push to main (so also on changes made through /admin/) the runner
+# builds the site and uploads dist/ via FTP to the web space. Only PHP for the
+# OAuth login runs on the server – the site itself is static.
 #
-# Die Upload-Action überträgt immer den kompletten Ordner und löscht auf dem
-# Server nichts. Gelöschte Seiten bleiben also liegen, bis sie von Hand aus
-# dem Dateimanager entfernt werden.
+# The upload action always transfers the whole folder and deletes nothing on
+# the server. Removed pages therefore stay around until they are deleted by
+# hand from the file manager.
 #
-# Die Zugangsdaten liegen in der GitHub-Environment „FTP“
+# The credentials live in the GitHub environment „FTP“
 # (Settings → Environments → FTP → Environment secrets):
-#   FTPSERVER             FTP-Host aus hPanel, z. B. ftp.hegerberg.at
-#   FTPUSER               FTP-Benutzer aus hPanel
-#   FTPPASSWORD           FTP-Passwort
-#   OAUTH_CLIENT_ID       Client-ID der GitHub-OAuth-App
-#   OAUTH_CLIENT_SECRET   Client-Secret der GitHub-OAuth-App
-#   SMTP_USER             Postfach für den Formularversand, z. B.
-#                         no-reply@hegerberg.at (ist zugleich der Absender)
-#   SMTP_PASSWORD         Passwort dieses Postfachs
-#   VAPID_PUBLIC_KEY      Öffentlicher VAPID-Schlüssel der Push-Nachrichten
-#   VAPID_PRIVATE_KEY     Privater VAPID-Schlüssel
-#   PUSH_VERSAND_TOKEN    Geheimnis zwischen Melde-Workflow und
-#                         api/push-versand.php
+#   FTPSERVER             FTP host from the hPanel, e.g. ftp.hegerberg.at
+#   FTPUSER               FTP user from the hPanel
+#   FTPPASSWORD           FTP password
+#   OAUTH_CLIENT_ID       client ID of the GitHub OAuth app
+#   OAUTH_CLIENT_SECRET   client secret of the GitHub OAuth app
+#   SMTP_USER             mailbox used for sending the form, e.g.
+#                         no-reply@hegerberg.at (also the sender)
+#   SMTP_PASSWORD         password of that mailbox
+#   VAPID_PUBLIC_KEY      public VAPID key of the push messages
+#   VAPID_PRIVATE_KEY     private VAPID key
+#   PUSH_VERSAND_TOKEN    shared secret between the notify workflow and
+#                         api/push-send.php
 #
-# Optionale Environment-Variablen (Voreinstellung in Klammern):
+# Optional environment variables (default in brackets):
 #   SMTP_HOST      (smtp.hostinger.com)
 #   SMTP_PORT      (465)
-#   SMTP_SECURE    (ssl – für Port 587 auf tls stellen)
+#   SMTP_SECURE    (ssl – set to tls for port 587)
 #   VAPID_SUBJECT  (mailto:office@hegerberg.at)
 #
-# Fehlen die drei Push-Werte, läuft der Deploy trotzdem durch – dann bleiben
-# nur die Benachrichtigungen abgeschaltet.
+# If the three push values are missing, the deploy still succeeds – only the
+# notifications stay switched off.
 #
-# PHPMailer und web-push werden nicht hier hochgeladen, sondern einmalig über
-# den manuellen Workflow .github/workflows/php-bibliotheken.yml.
+# PHPMailer and web-push are not uploaded here but once through the manual
+# workflow .github/workflows/php-libraries.yml.
 #
-# Wichtig: Environment-Secrets sind nur sichtbar, wenn der Job die Environment
-# unten über `environment:` anfordert – sonst sind sie schlicht leer.
+# Important: environment secrets are only visible when the job requests the
+# environment through `environment:` below – otherwise they are simply empty.
 
 name: Deploy
 
 on:
   push:
     branches: [main]
-  # Erlaubt einen manuellen Deploy über die Actions-Oberfläche.
+  # Allows a manual deploy through the Actions UI.
   workflow_dispatch:
 
-# Nie zwei Deployments gleichzeitig; ein neuerer Push wartet auf den laufenden.
+# Never two deployments at once; a newer push waits for the running one.
 concurrency:
   group: deploy-production
   cancel-in-progress: false
 
 jobs:
   deploy:
-    name: Bauen und hochladen
+    name: Build and upload
     runs-on: ubuntu-latest
     timeout-minutes: 15
     environment: FTP
@@ -66,15 +66,15 @@ jobs:
         with:
           bun-version: latest
 
-      # Ohne bun.lock im Repo kann hier nicht gegen einen festen Stand
-      # installiert werden – die Versionen ergeben sich aus package.json.
-      - name: Abhängigkeiten installieren
+      # Without a bun.lock in the repository this cannot install against a
+      # pinned state – the versions follow from package.json.
+      - name: Install dependencies
         run: bun install
 
-      - name: Seite bauen
+      - name: Build the site
         run: bun run build
 
-      - name: OAuth-Zugangsdaten erzeugen
+      - name: Generate OAuth credentials
         env:
           CLIENT_ID: ${{ secrets.OAUTH_CLIENT_ID }}
           CLIENT_SECRET: ${{ secrets.OAUTH_CLIENT_SECRET }}
@@ -83,33 +83,33 @@ jobs:
           : "${CLIENT_ID:?Secret OAUTH_CLIENT_ID fehlt in der Environment FTP}"
           : "${CLIENT_SECRET:?Secret OAUTH_CLIENT_SECRET fehlt in der Environment FTP}"
 
-          # Für einfach gequotete PHP-Strings müssen nur \ und ' maskiert
-          # werden. Die Werte werden dabei nie ausgegeben.
+          # For single-quoted PHP strings only \ and ' have to be escaped. The
+          # values are never printed in the process.
           id=${CLIENT_ID//\\/\\\\}; id=${id//\'/\\\'}
           secret=${CLIENT_SECRET//\\/\\\\}; secret=${secret//\'/\\\'}
 
           cat > dist/oauth/config.php <<EOF
           <?php
-          // Wird bei jedem Deploy aus den GitHub-Secrets erzeugt – nicht von
-          // Hand bearbeiten.
+          // Generated from the GitHub secrets on every deploy – do not edit by
+          // hand.
           return [
               'client_id' => '${id}',
               'client_secret' => '${secret}',
           ];
           EOF
 
-          # Syntaxprüfung, falls der Runner PHP mitbringt – sonst nur ein Hinweis.
+          # Syntax check in case the runner ships PHP – otherwise just a note.
           if command -v php >/dev/null; then
             php -l dist/oauth/config.php
           else
             echo "PHP auf dem Runner nicht verfügbar – Syntaxprüfung übersprungen."
           fi
 
-          # Die Vorlage ist reine Dokumentation und hat auf dem Server nichts
-          # verloren; die Upload-Action kennt keine Ausschlussliste.
+          # The template is pure documentation and has no business on the
+          # server; the upload action has no exclusion list of its own.
           rm -f dist/oauth/config.example.php
 
-      - name: SMTP-Zugangsdaten erzeugen
+      - name: Generate SMTP credentials
         env:
           SMTP_USER: ${{ secrets.SMTP_USER }}
           SMTP_FROM: ${{ vars.SMTP_FROM }}
@@ -122,32 +122,32 @@ jobs:
           : "${SMTP_USER:?Secret SMTP_USER fehlt in der Environment FTP}"
           : "${SMTP_PASSWORD:?Secret SMTP_PASSWORD fehlt in der Environment FTP}"
 
-          # Ohne gesetzte Variablen die Hostinger-Standardwerte.
+          # The Hostinger defaults when the variables are not set.
           host=${SMTP_HOST:-smtp.hostinger.com}
           port=${SMTP_PORT:-465}
           secure=${SMTP_SECURE:-ssl}
 
-          # Für einfach gequotete PHP-Strings müssen nur \ und ' maskiert
-          # werden. Die Werte werden dabei nie ausgegeben.
-          maskieren() { local w=${1//\\/\\\\}; printf '%s' "${w//\'/\\\'}"; }
-          benutzer=$(maskieren "$SMTP_USER")
-          absender=$(maskieren "$SMTP_FROM")
-          passwort=$(maskieren "$SMTP_PASSWORD")
-          host=$(maskieren "$host")
+          # For single-quoted PHP strings only \ and ' have to be escaped. The
+          # values are never printed in the process.
+          escape() { local v=${1//\\/\\\\}; printf '%s' "${v//\'/\\\'}"; }
+          username=$(escape "$SMTP_USER")
+          from=$(escape "$SMTP_FROM")
+          password=$(escape "$SMTP_PASSWORD")
+          host=$(escape "$host")
 
           cat > dist/api/config.php <<EOF
           <?php
-          // Wird bei jedem Deploy aus den GitHub-Secrets erzeugt – nicht von
-          // Hand bearbeiten.
+          // Generated from the GitHub secrets on every deploy – do not edit by
+          // hand.
           return [
               'host' => '${host}',
               'port' => ${port},
-              'verschluesselung' => '${secure}',
-              'benutzer' => '${benutzer}',
-              'passwort' => '${passwort}',
-              'absender' => '${absender}',
-              'absender_name' => 'Schutzhaus am Hegerberg',
-              'empfaenger' => 'office@hegerberg.at',
+              'encryption' => '${secure}',
+              'username' => '${username}',
+              'password' => '${password}',
+              'from' => '${from}',
+              'from_name' => 'Schutzhaus am Hegerberg',
+              'recipient' => 'office@hegerberg.at',
           ];
           EOF
 
@@ -159,49 +159,51 @@ jobs:
 
           rm -f dist/api/config.example.php
 
-      - name: Push-Zugangsdaten erzeugen
+      - name: Generate push credentials
         env:
           VAPID_PUBLIC_KEY: ${{ secrets.VAPID_PUBLIC_KEY }}
           VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY }}
           VAPID_SUBJECT: ${{ vars.VAPID_SUBJECT }}
-          PUSH_VERSAND_TOKEN: ${{ secrets.PUSH_VERSAND_TOKEN }}
+          # The secret keeps its name in the GitHub settings.
+          PUSH_SEND_TOKEN: ${{ secrets.PUSH_VERSAND_TOKEN }}
         run: |
           set -euo pipefail
 
-          # Die Vorlage ist reine Dokumentation und hat auf dem Server nichts
-          # verloren – unabhängig davon, ob die Schlüssel gesetzt sind.
+          # The template is pure documentation and has no business on the
+          # server – regardless of whether the keys are set.
           rm -f dist/api/push-config.example.php
 
-          # Solange die Schlüssel nicht hinterlegt sind, bleibt der Deploy
-          # trotzdem grün: Ohne push-config.php sind nur die Benachrichtigungen
-          # abgeschaltet, die Seite selbst funktioniert vollständig.
-          if [ -z "${VAPID_PUBLIC_KEY:-}" ] || [ -z "${VAPID_PRIVATE_KEY:-}" ] || [ -z "${PUSH_VERSAND_TOKEN:-}" ]; then
+          # As long as the keys are not configured the deploy still stays
+          # green: without push-config.php only the notifications are off, the
+          # site itself works completely.
+          if [ -z "${VAPID_PUBLIC_KEY:-}" ] || [ -z "${VAPID_PRIVATE_KEY:-}" ] || [ -z "${PUSH_SEND_TOKEN:-}" ]; then
             echo "::warning::VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY oder PUSH_VERSAND_TOKEN fehlt in der Environment FTP – Push-Benachrichtigungen bleiben aus. Siehe README, Abschnitt „Push-Benachrichtigungen“."
             exit 0
           fi
 
           subject=${VAPID_SUBJECT:-mailto:office@hegerberg.at}
 
-          # Für einfach gequotete PHP-Strings müssen nur \ und ' maskiert
-          # werden. Die Werte werden dabei nie ausgegeben.
-          maskieren() { local w=${1//\\/\\\\}; printf '%s' "${w//\'/\\\'}"; }
-          oeffentlich=$(maskieren "$VAPID_PUBLIC_KEY")
-          privat=$(maskieren "$VAPID_PRIVATE_KEY")
-          subject=$(maskieren "$subject")
-          token=$(maskieren "$PUSH_VERSAND_TOKEN")
+          # For single-quoted PHP strings only \ and ' have to be escaped. The
+          # values are never printed in the process.
+          escape() { local v=${1//\\/\\\\}; printf '%s' "${v//\'/\\\'}"; }
+          public=$(escape "$VAPID_PUBLIC_KEY")
+          private=$(escape "$VAPID_PRIVATE_KEY")
+          subject=$(escape "$subject")
+          token=$(escape "$PUSH_SEND_TOKEN")
 
           cat > dist/api/push-config.php <<EOF
           <?php
-          // Wird bei jedem Deploy aus den GitHub-Secrets erzeugt – nicht von
-          // Hand bearbeiten.
+          // Generated from the GitHub secrets on every deploy – do not edit by
+          // hand.
           return [
-              'vapid_oeffentlich' => '${oeffentlich}',
-              'vapid_privat' => '${privat}',
+              'vapid_public' => '${public}',
+              'vapid_private' => '${private}',
               'vapid_subject' => '${subject}',
-              'versand_token' => '${token}',
-              // Liegt eine Ebene über public_html und ist damit über den
-              // Browser nicht erreichbar.
-              'datenverzeichnis' => __DIR__ . '/../../push-daten',
+              'send_token' => '${token}',
+              // Sits one level above public_html and is therefore not
+              // reachable through the browser. The directory name is kept as
+              // it is – it holds the live subscriptions.
+              'data_dir' => __DIR__ . '/../../push-daten',
           ];
           EOF
 
@@ -211,8 +213,8 @@ jobs:
             echo "PHP auf dem Runner nicht verfügbar – Syntaxprüfung übersprungen."
           fi
 
-      # Docker-Action – dadurch unabhängig von der Node-Version des Runners.
-      - name: Per FTP hochladen
+      # Docker action – therefore independent of the runner's Node version.
+      - name: Upload via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.4.0
         with:
           server: ${{ vars.FTPSERVER }}
@@ -220,8 +222,8 @@ jobs:
           password: ${{ secrets.FTPPASSWORD }}
           local-dir: ./dist/
           server-dir: /domains/hegerberg.at/public_html/
-          # Die Action merkt sich den letzten Stand in dieser Datei und
-          # überträgt beim nächsten Mal nur die Unterschiede.
+          # The action remembers the last state in this file and only transfers
+          # the differences next time.
           state-name: .ftp-deploy-sync-state.json
           exclude: |
             **/.git*
@@ -230,6 +232,6 @@ jobs:
             oauth/config.example.php
             api/config.example.php
             api/push-config.example.php
-            # PHPMailer und web-push kommen aus dem Workflow
-            # „PHP-Bibliotheken hochladen“.
+            # PHPMailer and web-push come from the workflow
+            # „Upload PHP libraries“.
             vendor/**

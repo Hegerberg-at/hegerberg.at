@@ -2,44 +2,44 @@
 import { site } from '../lib/site';
 
 interface Props {
-  /** Pfad zum Banner-Bild (in /public). SVG-Panorama als Standard. */
-  bild?: string;
-  titel?: string;
-  untertitel?: string;
+  /** Path to the banner image (in /public). SVG panorama by default. */
+  image?: string;
+  title?: string;
+  subtitle?: string;
 }
 
 const {
-  bild = '/images/hero.svg',
-  titel = site.name,
-  untertitel = site.claim,
+  image = '/images/hero.svg',
+  title = site.name,
+  subtitle = site.claim,
 } = Astro.props;
 ---
 
 <section class="relative isolate -mt-[76px] flex min-h-[88svh] items-end">
   <img
-    src={bild}
+    src={image}
     alt=""
     aria-hidden="true"
     class="absolute inset-0 -z-20 size-full object-cover"
   />
   <div
-    class="absolute inset-0 -z-10 bg-gradient-to-t from-holz-950 via-holz-950/50 to-holz-950/25"
+    class="absolute inset-0 -z-10 bg-gradient-to-t from-wood-950 via-wood-950/50 to-wood-950/25"
   >
   </div>
 
   <div class="container-page pb-20 pt-40 sm:pb-28">
     <p
-      class="text-xs font-semibold uppercase tracking-[0.3em] text-holz-300 sm:text-sm"
+      class="text-xs font-semibold uppercase tracking-[0.3em] text-wood-300 sm:text-sm"
     >
-      {site.adresse.ort} · {site.adresse.bezirk} · {site.geo.seehoehe}&nbsp;m
+      {site.address.city} · {site.address.district} · {site.geo.elevation}&nbsp;m
     </p>
     <h1
-      class="mt-5 max-w-3xl text-4xl font-bold leading-[1.05] text-holz-50 sm:text-6xl lg:text-7xl"
+      class="mt-5 max-w-3xl text-4xl font-bold leading-[1.05] text-wood-50 sm:text-6xl lg:text-7xl"
     >
-      {titel}
+      {title}
     </h1>
-    <p class="mt-6 max-w-xl text-lg leading-relaxed text-holz-200 sm:text-xl">
-      {untertitel}
+    <p class="mt-6 max-w-xl text-lg leading-relaxed text-wood-200 sm:text-xl">
+      {subtitle}
     </p>
 
     <div class="mt-10 flex flex-wrap gap-4">

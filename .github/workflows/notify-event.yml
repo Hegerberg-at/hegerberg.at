@@ -1,0 +1,96 @@
+#
+# Push notification for new events.
+#
+# Runs automatically as soon as the deploy workflow has finished successfully –
+# that is, only once the new event is actually live on the website. Whoever
+# taps the notification should not end up on a missing page.
+#
+# Only files that were newly added under src/content/events/ in the triggering
+# commit are reported (git diff --diff-filter=A). Changes to existing events
+# trigger nothing. On top of that api/push-send.php remembers every slug it has
+# already sent, so a deploy repeated by hand does not fire a second message.
+#
+# Credentials from the GitHub environment „FTP“ (same as for the deploy):
+#   PUSH_VERSAND_TOKEN  secret that api/push-send.php expects
+#
+# Optional environment variable:
+#   PUSH_ENDPUNKT  (https://hegerberg.at/api/push-send.php)
+#
+# The names PUSH_VERSAND_TOKEN and PUSH_ENDPUNKT are the ones configured in the
+# GitHub settings – they are kept as they are so the existing secret keeps
+# working, and mapped to the English variable names below.
+
+name: Notify about events
+
+on:
+  workflow_run:
+    workflows: [Deploy]
+    types: [completed]
+
+# Two runs at the same time could report the same event twice.
+concurrency:
+  group: notify-event
+  cancel-in-progress: false
+
+jobs:
+  notify:
+    name: Notify about new events
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: FTP
+
+    # Only after a successful deploy of main. A deploy started by hand
+    # (workflow_dispatch) carries no new commit – there is nothing to report.
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_branch == 'main'
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # The state that was just deployed – not the current head of main,
+          # which may have moved on in the meantime.
+          ref: ${{ github.event.workflow_run.head_sha }}
+          # For the comparison with the predecessor commit.
+          fetch-depth: 2
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Determine new events
+        id: new
+        run: |
+          set -euo pipefail
+
+          # The CMS writes exactly one commit per change, so comparing with the
+          # direct predecessor is enough.
+          files=$(git diff --diff-filter=A --name-only HEAD^ HEAD -- 'src/content/events/*.md' || true)
+
+          if [ -z "$files" ]; then
+            echo "Keine neue Veranstaltung in $(git rev-parse --short HEAD)."
+          else
+            echo "Neu:"; echo "$files"
+          fi
+
+          {
+            echo 'files<<END'
+            echo "$files"
+            echo 'END'
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Send notification
+        if: steps.new.outputs.files != ''
+        env:
+          PUSH_SEND_TOKEN: ${{ secrets.PUSH_VERSAND_TOKEN }}
+          PUSH_ENDPOINT: ${{ vars.PUSH_ENDPUNKT || 'https://hegerberg.at/api/push-send.php' }}
+          FILES: ${{ steps.new.outputs.files }}
+        run: |
+          set -euo pipefail
+          # Word splitting is intentional here: one file per line.
+          # shellcheck disable=SC2086
+          bun run scripts/notify-event.mjs $FILES

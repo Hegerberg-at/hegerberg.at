@@ -1,0 +1,224 @@
+---
+import {
+  getOpeningHours,
+  timeRange,
+  type OpeningDayData,
+} from '../lib/opening-hours';
+
+interface Props {
+  /** "compact" for the home page, "full" for the opening hours page. */
+  variant?: 'compact' | 'full';
+  class?: string;
+}
+
+const { variant = 'compact', class: className } = Astro.props;
+
+const days: OpeningDayData[] = await getOpeningHours();
+const notes = [
+  ...new Set(days.map((day) => day.note).filter(Boolean)),
+] as string[];
+---
+
+<section
+  class:list={['card overflow-hidden', className]}
+  data-opening-hours
+  aria-labelledby="opening-hours-title"
+>
+  <div class="bg-forest-800 px-6 py-5 text-wood-50 sm:px-8">
+    <p class="eyebrow text-forest-200">Immer aktuell</p>
+    <h2
+      id="opening-hours-title"
+      class="mt-1 text-2xl font-bold sm:text-3xl"
+    >
+      Öffnungszeiten
+    </h2>
+
+    <!-- Filled in client side; without JS the static fallback stays. -->
+    <div
+      class="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1"
+      data-status
+      hidden
+    >
+      <span class="flex items-center gap-2 text-base font-semibold">
+        <span
+          class="size-2.5 shrink-0 rounded-full bg-wood-400"
+          data-status-dot
+          aria-hidden="true"></span>
+        <span data-status-text></span>
+      </span>
+      <span class="text-sm text-forest-200" data-status-detail></span>
+    </div>
+  </div>
+
+  <dl class="divide-y divide-wood-200">
+    {
+      days.map((day) => (
+        <div
+          class="flex items-baseline justify-between gap-4 px-6 py-3 sm:px-8"
+          data-day={day.day}
+        >
+          <dt class="font-medium">
+            {day.day}
+            {day.note && variant === 'full' && (
+              <span class="mt-0.5 block text-xs font-normal text-wood-600">
+                {day.note}
+              </span>
+            )}
+          </dt>
+          <dd
+            class:list={[
+              'shrink-0 tabular-nums',
+              day.closed ? 'text-wood-500' : 'font-semibold',
+            ]}
+          >
+            {timeRange(day)}
+          </dd>
+        </div>
+      ))
+    }
+  </dl>
+
+  {
+    notes.length > 0 && variant === 'compact' && (
+      <div class="border-t border-wood-200 bg-wood-100 px-6 py-4 text-sm text-wood-700 sm:px-8">
+        <ul class="space-y-1">
+          {notes.map((note) => (
+            <li>{note}</li>
+          ))}
+        </ul>
+      </div>
+    )
+  }
+</section>
+
+<script
+  type="application/json"
+  data-opening-hours-data
+  set:html={JSON.stringify(days)}
+  is:inline
+/>
+
+<script>
+  type Day = {
+    day: string;
+    order: number;
+    closed: boolean;
+    from?: string;
+    until?: string;
+    note?: string;
+  };
+
+  const dataEl = document.querySelector<HTMLScriptElement>(
+    '[data-opening-hours-data]',
+  );
+  if (dataEl) {
+    const days: Day[] = JSON.parse(dataEl.textContent ?? '[]');
+    const ordered = [...days].sort((a, b) => a.order - b.order);
+
+    const minutes = (hhmm: string) => {
+      const [h, m] = hhmm.split(':').map(Number);
+      return h * 60 + m;
+    };
+
+    /** Current Vienna time, regardless of the visitor's time zone. */
+    const nowInVienna = () => {
+      const parts = new Intl.DateTimeFormat('de-AT', {
+        timeZone: 'Europe/Vienna',
+        weekday: 'long',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+      }).formatToParts(new Date());
+      const value = (type: string) =>
+        parts.find((p) => p.type === type)?.value ?? '';
+      return {
+        weekday: value('weekday'),
+        minutes: Number(value('hour')) * 60 + Number(value('minute')),
+      };
+    };
+
+    const isOpen = (day: Day | undefined) =>
+      Boolean(day && !day.closed && day.from && day.until);
+
+    const update = () => {
+      const now = nowInVienna();
+      const index = ordered.findIndex((d) => d.day === now.weekday);
+      if (index === -1) return;
+
+      const today = ordered[index];
+      const yesterday = ordered[(index + ordered.length - 1) % ordered.length];
+
+      let open = false;
+      let detail = '';
+
+      // Was yesterday open past midnight?
+      if (isOpen(yesterday)) {
+        const from = minutes(yesterday.from!);
+        const until = minutes(yesterday.until!);
+        if (until <= from && now.minutes < until) {
+          open = true;
+          detail = `Noch bis ${yesterday.until} Uhr`;
+        }
+      }
+
+      if (!open && isOpen(today)) {
+        const from = minutes(today.from!);
+        let until = minutes(today.until!);
+        if (until <= from) until += 24 * 60;
+
+        if (now.minutes >= from && now.minutes < until) {
+          open = true;
+          const remaining = until - now.minutes;
+          detail =
+            remaining <= 60
+              ? `Schließt in ${remaining} Min. (${today.until} Uhr)`
+              : `Heute bis ${today.until} Uhr`;
+        } else if (now.minutes < from) {
+          detail = `Öffnet heute um ${today.from} Uhr`;
+        }
+      }
+
+      if (!open && !detail) {
+        // Look for the next open day.
+        for (let offset = 1; offset <= ordered.length; offset++) {
+          const candidate = ordered[(index + offset) % ordered.length];
+          if (isOpen(candidate)) {
+            detail =
+              offset === 1
+                ? `Öffnet morgen um ${candidate.from} Uhr`
+                : `Öffnet ${candidate.day} um ${candidate.from} Uhr`;
+            break;
+          }
+        }
+      }
+
+      const todaysNote = today?.note;
+      if (!open && todaysNote) {
+        detail = detail ? `${todaysNote} · ${detail}` : todaysNote;
+      }
+
+      for (const widget of document.querySelectorAll('[data-opening-hours]')) {
+        const status = widget.querySelector<HTMLElement>('[data-status]');
+        const dot = widget.querySelector<HTMLElement>('[data-status-dot]');
+        const text = widget.querySelector<HTMLElement>('[data-status-text]');
+        const detailEl = widget.querySelector<HTMLElement>('[data-status-detail]');
+        if (!status || !dot || !text || !detailEl) continue;
+
+        status.hidden = false;
+        text.textContent = open ? 'Jetzt geöffnet' : 'Derzeit geschlossen';
+        detailEl.textContent = detail;
+        dot.className = `size-2.5 shrink-0 rounded-full ${
+          open ? 'bg-green-400' : 'bg-red-400'
+        }`;
+
+        // Highlight today's row.
+        for (const row of widget.querySelectorAll<HTMLElement>('[data-day]')) {
+          row.classList.toggle('bg-wood-100', row.dataset.day === now.weekday);
+        }
+      }
+    };
+
+    update();
+    setInterval(update, 60_000);
+  }
+</script>
