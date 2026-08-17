@@ -30,22 +30,40 @@ export function timeRange(day: OpeningDayData): string {
   return `${day.from} – ${day.until}`;
 }
 
-/**
- * schema.org openingHours, e.g. "Mo 11:30-22:00".
- * Closed days are left out.
- */
-const SCHEMA_ABBREVIATIONS: Record<string, string> = {
-  Montag: 'Mo',
-  Dienstag: 'Tu',
-  Mittwoch: 'We',
-  Donnerstag: 'Th',
-  Freitag: 'Fr',
-  Samstag: 'Sa',
-  Sonntag: 'Su',
+/** The editorial weekday names mapped to schema.org DayOfWeek. */
+const SCHEMA_WEEKDAYS: Record<string, string> = {
+  Montag: 'Monday',
+  Dienstag: 'Tuesday',
+  Mittwoch: 'Wednesday',
+  Donnerstag: 'Thursday',
+  Freitag: 'Friday',
+  Samstag: 'Saturday',
+  Sonntag: 'Sunday',
 };
 
-export function schemaOpeningHours(days: OpeningDayData[]): string[] {
+export interface SchemaOpeningHours {
+  '@type': 'OpeningHoursSpecification';
+  dayOfWeek: string;
+  opens: string;
+  closes: string;
+}
+
+/**
+ * schema.org openingHoursSpecification for the Place under the organisation.
+ *
+ * The compact string form ("Mo 11:30-22:00") is not an option here: plain
+ * `openingHours` only exists on LocalBusiness and CivicStructure, whereas
+ * `openingHoursSpecification` is defined on Place itself.
+ *
+ * Closed days are left out.
+ */
+export function schemaOpeningHours(days: OpeningDayData[]): SchemaOpeningHours[] {
   return days
     .filter((day) => !day.closed && day.from && day.until)
-    .map((day) => `${SCHEMA_ABBREVIATIONS[day.day]} ${day.from}-${day.until}`);
+    .map((day) => ({
+      '@type': 'OpeningHoursSpecification',
+      dayOfWeek: SCHEMA_WEEKDAYS[day.day],
+      opens: day.from!,
+      closes: day.until!,
+    }));
 }

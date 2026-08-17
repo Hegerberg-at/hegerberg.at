@@ -20,6 +20,7 @@ import { site } from '../lib/site';
       <section>
         <h2 class="text-xl font-bold text-wood-950">Verantwortlicher</h2>
         <address class="mt-3 not-italic">
+          {site.legalName} (ZVR-Zahl: {site.legal.zvr})<br />
           {site.legal.owner}, {site.address.street}, {site.address.postalCode}
           &nbsp;{site.address.city}<br />
           E-Mail: <a

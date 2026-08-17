@@ -22,30 +22,46 @@ const pageTitle = title ? `${title} – ${site.name}` : `${site.name}`;
 const canonical = new URL(Astro.url.pathname, Astro.site ?? site.domain).href;
 
 const days = await getOpeningHours();
+
+const postalAddress = {
+  '@type': 'PostalAddress',
+  streetAddress: site.address.street,
+  postalCode: site.address.postalCode,
+  addressLocality: site.address.city,
+  addressRegion: site.address.state,
+  addressCountry: 'AT',
+};
+
+/**
+ * The Schutzhaus is run by a non-profit organisation, so the markup describes
+ * an Organization rather than a business.
+ *
+ * Organization has no `geo` and no `openingHours` of its own – those belong to
+ * a place. They therefore sit on the Place under `location`, which is also
+ * what carries the coordinates for map and search results.
+ */
 const jsonLd = {
   '@context': 'https://schema.org',
-  '@type': 'Restaurant',
+  '@type': 'Organization',
   name: site.name,
+  legalName: site.legalName,
   description: site.description,
   url: site.domain,
   telephone: site.phone,
   email: site.email,
-  servesCuisine: 'Österreichisch',
-  priceRange: '€€',
-  address: {
-    '@type': 'PostalAddress',
-    streetAddress: site.address.street,
-    postalCode: site.address.postalCode,
-    addressLocality: site.address.city,
-    addressRegion: site.address.state,
-    addressCountry: 'AT',
+  address: postalAddress,
+  location: {
+    '@type': 'Place',
+    name: site.name,
+    address: postalAddress,
+    geo: {
+      '@type': 'GeoCoordinates',
+      latitude: site.geo.lat,
+      longitude: site.geo.lng,
+      elevation: site.geo.elevation,
+    },
+    openingHoursSpecification: schemaOpeningHours(days),
   },
-  geo: {
-    '@type': 'GeoCoordinates',
-    latitude: site.geo.lat,
-    longitude: site.geo.lng,
-  },
-  openingHours: schemaOpeningHours(days),
 };
 ---
 

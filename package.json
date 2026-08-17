@@ -19,6 +19,7 @@
     "@astrojs/sitemap": "^3.7.3",
     "@tailwindcss/vite": "^4.3.3",
     "astro": "^7.1.6",
+    "astro-seo": "^1.1.0",
     "leaflet": "^1.9.4",
     "tailwindcss": "^4.3.3",
     "zod": "^4.4.3"

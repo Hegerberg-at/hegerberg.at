@@ -7,6 +7,8 @@
 export const site = {
   name: 'Schutzhaus am Hegerberg',
   shortName: 'Hegerberg',
+  /** Registered name of the non-profit association running the Schutzhaus. */
+  legalName: 'Touristenverein Hegerberg',
   claim: 'Das Schutzhaus am Hegerberg bei Stössing',
   description:
     'Das Schutzhaus am Hegerberg bei Stössing',
@@ -41,6 +43,12 @@ export const site = {
   /** Legal notice – PLATZHALTER, please have this reviewed legally. */
   legal: {
     owner: 'Schutzhaus am Hegerberg',
+    /**
+     * Register number of the association (Vereinsregister). Required on the
+     * publications of an Austrian association – PLATZHALTER, still to be
+     * filled in with the real number.
+     */
+    zvr: 'PLATZHALTER',
     businessPurpose: 'Gastgewerbe',
     authority: 'Bezirkshauptmannschaft St. Pölten',
     chamber: 'Wirtschaftskammer Niederösterreich, Fachgruppe Gastronomie',

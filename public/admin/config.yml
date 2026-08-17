@@ -26,7 +26,7 @@ backend:
     deleteMedia: 'CMS: Medium {{path}} gelöscht'
 
 # Local backend for development (ignored in production).
-local_backend: false
+local_backend: true
 
 locale: de
 site_url: https://hegerberg.at
