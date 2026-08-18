@@ -120,6 +120,7 @@ jobs:
           server: ${{ vars.FTPSERVER }}
           username: ${{ vars.FTPUSER }}
           password: ${{ secrets.FTPPASSWORD }}
+          protocol: ftps
           local-dir: ./build/vendor/
           server-dir: /domains/hegerberg.at/public_html/vendor/
           # A dedicated sync state, so the deploy and this workflow do not
