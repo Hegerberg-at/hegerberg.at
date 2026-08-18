@@ -4,7 +4,7 @@ type: Mountainbike
 difficulty: mittel
 description: Elsbeere Singletrail
 gpx: /gpx/elsbeere-singletrail.gpx
-start: Michelbach.
+start: Kopfsdorf
 note: Der Trail ist vom 1. März bis 31. Oktober befahrbar.
 image: /images/uploads/1000041559.jpg
 featured: false
