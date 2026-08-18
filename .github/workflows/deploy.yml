@@ -224,6 +224,7 @@ jobs:
         uses: SamKirkland/FTP-Deploy-Action@v4.4.0
         with:
           server: ${{ vars.FTPSERVER }}
+          protocol: ftps
           username: ${{ vars.FTPUSER }}
           password: ${{ secrets.FTPPASSWORD }}
           local-dir: ./dist/
