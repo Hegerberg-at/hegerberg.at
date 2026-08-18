@@ -3,7 +3,7 @@ import { SEO } from 'astro-seo';
 import '../styles/global.css';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
-import { site, addressOneLine } from '../lib/site';
+import { site, addressOneLine, navigation } from '../lib/site';
 import { getOpeningHours, schemaOpeningHours } from '../lib/opening-hours';
 
 interface Props {
@@ -55,8 +55,7 @@ const postalAddress = {
  * a place. They therefore sit on the Place under `location`, which is also
  * what carries the coordinates for map and search results.
  */
-const jsonLd = {
-  '@context': 'https://schema.org',
+const organizationSchema = {
   '@type': 'Organization',
   name: site.name,
   legalName: site.legalName,
@@ -77,6 +76,39 @@ const jsonLd = {
     },
     openingHoursSpecification: schemaOpeningHours(days),
   },
+};
+
+/**
+ * Breadcrumb trail for the section pages. The labels come from the navigation
+ * so they cannot drift apart from the ones a visitor sees in the header.
+ */
+const breadcrumbPages = ['/veranstaltungen/', '/aktivitaeten/'];
+
+const breadcrumbSchema = {
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    {
+      '@type': 'ListItem',
+      position: 1,
+      name: 'Startseite',
+      item: new URL('/', baseUrl).href,
+    },
+    ...breadcrumbPages.map((href, index) => ({
+      '@type': 'ListItem',
+      position: index + 2,
+      name: navigation.find((item) => item.href === href)?.label ?? href,
+      item: new URL(href, baseUrl).href,
+    })),
+  ],
+};
+
+/**
+ * Both schemas travel in one `@graph` – a page may carry several ld+json
+ * blocks, but a single graph keeps `@context` in one place.
+ */
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [organizationSchema, breadcrumbSchema],
 };
 ---
 
