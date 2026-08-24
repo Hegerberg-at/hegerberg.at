@@ -6,5 +6,6 @@ time: 09:30
 description: Bergmesse am Hegerberg.
 image: /images/uploads/img_2830.png
 cancelled: false
-gallery: []
+gallery:
+  - image: /images/uploads/img_2830.png
 ---
