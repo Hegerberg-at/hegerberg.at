@@ -1,0 +1,57 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import SectionHeading from '../components/SectionHeading.astro';
+import { navigation } from '../lib/site';
+
+/** The home page already has its own button, so it is skipped in the list. */
+const suggestions = navigation.filter((item) => item.href !== '/');
+---
+
+<BaseLayout
+  title="Seite nicht gefunden"
+  description="Diese Seite gibt es nicht (mehr). Hier geht es zurück zu Öffnungszeiten, Veranstaltungen und Kontakt."
+>
+  <div class="container-page py-16 sm:py-20">
+    <p
+      class="font-display text-7xl font-bold leading-none text-wood-300 sm:text-8xl"
+      aria-hidden="true"
+    >
+      404
+    </p>
+
+    <div class="mt-6">
+      <SectionHeading
+        as="h1"
+        eyebrow="Seite nicht gefunden"
+        title="Da haben wir uns wohl beide verlaufen"
+        text="Diese Seite gibt es nicht oder nicht mehr. Vielleicht wurde sie umbenannt oder der Link ist veraltet. Von hier finden Sie zurück auf den Weg."
+      />
+    </div>
+
+    <div class="mt-10 flex flex-wrap gap-4">
+      <a href="/" class="btn-primary">Zur Startseite</a>
+      <a href="/kontakt/" class="btn-outline">Kontakt &amp; Anfahrt</a>
+    </div>
+
+    <div class="mt-16 border-t border-wood-200 pt-10">
+      <h2 class="text-xs font-semibold uppercase tracking-[0.2em] text-forest-700">
+        Beliebte Seiten
+      </h2>
+      <ul class="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {
+          suggestions.map((item) => (
+            <li>
+              <a
+                href={item.href}
+                class="card flex items-center justify-between gap-3 px-5 py-4 font-semibold text-wood-900 transition hover:border-wood-400 hover:bg-wood-100"
+              >
+                {item.label}
+                <span aria-hidden="true" class="text-wood-400">&rarr;</span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </div>
+</BaseLayout>
