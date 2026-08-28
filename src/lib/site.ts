@@ -54,7 +54,7 @@ export const site = {
 
   legal: {
     owner: 'Schutzhaus am Hegerberg',
-    zvr: 'PLATZHALTER',
+    zvr: '955119922',
     businessPurpose: 'Gastgewerbe',
     authority: 'Bezirkshauptmannschaft St. Pölten',
     chamber: 'Wirtschaftskammer Niederösterreich, Fachgruppe Gastronomie',
