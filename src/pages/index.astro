@@ -11,7 +11,8 @@ import { loadTours } from '../lib/tours';
 
 import BecomeMembership from '../components/BecomeMembership.astro';
 import { site } from '../lib/site';
-import { formatPrice } from '../lib/format';
+import { formatPrice, isoDate } from '../lib/format';
+import { eventUntil } from '../lib/events';
 
 /** Editorial texts of the home page (Decap collection „Startseite“). */
 const home = await getEntry('home', 'index');
@@ -21,13 +22,22 @@ if (!home) {
 const { hero, welcome, specialties: kitchen } = home.data;
 const eventsText = home.data.events;
 
-const today = new Date();
-today.setHours(0, 0, 0, 0);
+/** How many events the teaser row shows at most. */
+const UPCOMING_LIMIT = 3;
+
+/**
+ * The static build freezes the date it was generated on, so the browser picks
+ * the events to show (see lib/event-split.ts). A few more than fit the row are
+ * rendered, otherwise the row would only shrink as events pass.
+ */
+const RENDER_LIMIT = 6;
+
+const today = isoDate(new Date());
 
 const events = (await getCollection('events'))
-  .filter((event) => (event.data.endDate ?? event.data.date) >= today)
+  .filter((event) => eventUntil(event) >= today)
   .sort((a, b) => a.data.date.getTime() - b.data.date.getTime())
-  .slice(0, 3);
+  .slice(0, RENDER_LIMIT);
 
 const tours = await loadTours();
 
@@ -155,26 +165,36 @@ const history = (await getCollection('history')).sort(
   <!-- Events -->
   {
     events.length > 0 && (
-      <section class="container-page mt-24">
+      <section data-events-section class="container-page mt-24">
         <SectionHeading
           eyebrow={eventsText.eyebrow}
           title={eventsText.title}
           text={eventsText.text}
           centered
         />
-        <div class="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {events.map((event) => (
-            <EventCard
-              title={event.data.title}
-              date={event.data.date}
-              endDate={event.data.endDate}
-              time={event.data.time}
-              description={event.data.description}
-              image={event.data.image}
-              imageAlt={event.data.imageAlt}
-              cancelled={event.data.cancelled}
-              href={`/veranstaltungen/${event.id}/`}
-            />
+        <div
+          data-events-upcoming
+          data-entry-display="contents"
+          data-limit={UPCOMING_LIMIT}
+          class="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3"
+        >
+          {events.map((event, index) => (
+            <div
+              data-until={eventUntil(event)}
+              class:list={[index < UPCOMING_LIMIT ? 'contents' : 'hidden']}
+            >
+              <EventCard
+                title={event.data.title}
+                date={event.data.date}
+                endDate={event.data.endDate}
+                time={event.data.time}
+                description={event.data.description}
+                image={event.data.image}
+                imageAlt={event.data.imageAlt}
+                cancelled={event.data.cancelled}
+                href={`/veranstaltungen/${event.id}/`}
+              />
+            </div>
           ))}
         </div>
         <div class="mt-10 text-center">
@@ -188,7 +208,7 @@ const history = (await getCollection('history')).sort(
 
 <!-- Aktivitäten -->
   {
-    events.length > 0 && (
+    tours.length > 0 && (
       <section class="container-page mt-24">
         <SectionHeading
           eyebrow="Unterwegs"
@@ -230,3 +250,9 @@ const history = (await getCollection('history')).sort(
     </div>
   </section>
 </BaseLayout>
+
+<script>
+  import { watchEventSplit } from '../lib/event-split';
+
+  watchEventSplit();
+</script>
